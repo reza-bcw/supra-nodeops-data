@@ -5,9 +5,6 @@ prune_block_max_time_ms = 1209600000
 smr_storage = "smr_storage"
 ledger_storage = "ledger_storage"
 commitment_storage = "commitment_storage"
-root_ca_cert_path = "ca_certificate.pem"
-server_cert_path = "server_supra_certificate.pem"
-server_private_key_path = "server_supra_key.pem"
 connection_refresh_timeout_sec = 3
 
 [mempool]
