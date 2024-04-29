@@ -1,0 +1,32 @@
+[node_setting]
+node_public_addr = "[YOUR_NODE_PUBLIC_IP]:25000"
+rpc_access_port = 26000
+prune_block_max_time_ms = 1209600000
+smr_storage = "smr_storage"
+ledger_storage = "ledger_storage"
+commitment_storage = "commitment_storage"
+root_ca_cert_path = "ca_certificate.pem"
+server_cert_path = "server_supra_certificate.pem"
+server_private_key_path = "server_supra_key.pem"
+connection_refresh_timeout_sec = 3
+
+[mempool]
+batch_size = 500000
+gc_depth = 50
+max_batch_delay = 100
+sync_retry_delay = 5000
+sync_retry_nodes = 3
+
+[moonshot]
+block_recency_bound = 500000
+halt_block_production_when_no_txs = true
+leader_elector = "FairSuccession"
+max_block_delay = 1000
+max_block_size = 1
+message_recency_bound = 10
+sync_retry_delay = 5000
+timeout_delay = 2500
+
+[instance]
+chain_id = [CHAIN_ID]
+resume = true
