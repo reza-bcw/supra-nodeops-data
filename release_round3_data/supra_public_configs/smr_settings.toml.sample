@@ -19,10 +19,10 @@ block_recency_bound = 500000
 halt_block_production_when_no_txs = true
 leader_elector = "FairSuccession"
 max_block_delay = 1000
-max_block_size = 1
+max_block_size = 100
 message_recency_bound = 10
 sync_retry_delay = 5000
-timeout_delay = 2500
+timeout_delay = 5000
 
 [instance]
 chain_id = 4
