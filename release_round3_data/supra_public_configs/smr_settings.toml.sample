@@ -1,6 +1,7 @@
 [node_setting]
 node_public_addr = "[YOUR_NODE_PUBLIC_IP]:25000"
 rpc_access_port = 26000
+# prune time is set to 2 weeks
 prune_block_max_time_ms = 1209600000
 smr_storage = "smr_storage"
 ledger_storage = "ledger_storage"
