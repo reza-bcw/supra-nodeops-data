@@ -25,5 +25,5 @@ sync_retry_delay = 5000
 timeout_delay = 2500
 
 [instance]
-chain_id = [CHAIN_ID]
+chain_id = 4
 resume = true
