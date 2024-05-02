@@ -17,6 +17,7 @@ function check_command() {
 echo "Checking prerequisites ..."
 check_command shasum
 check_command jq
+check_command wget
 
 checksum="981bc2b865d0653ce61ca96583c273e1e89ca6fc5d51644ab4346752b0196d30"
 
