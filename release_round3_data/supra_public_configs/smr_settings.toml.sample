@@ -6,7 +6,7 @@ prune_block_max_time_ms = 1209600000
 smr_storage = "smr_storage"
 ledger_storage = "ledger_storage"
 commitment_storage = "commitment_storage"
-connection_refresh_timeout_sec = 3
+connection_refresh_timeout_sec = 10
 
 [mempool]
 batch_size = 500000
