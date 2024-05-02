@@ -19,7 +19,7 @@ check_command shasum
 check_command jq
 check_command wget
 
-checksum="981bc2b865d0653ce61ca96583c273e1e89ca6fc5d51644ab4346752b0196d30"
+checksum="4642dc01a255912c4c68c6fbf14ffb5818339b431e9117d706c96483c307ab33"
 
 dkg_definitions="dkgs_definition.json"
 if [ -e ${dkg_definitions} ]
