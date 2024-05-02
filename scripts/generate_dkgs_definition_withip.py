@@ -39,7 +39,7 @@ def generate_dkgs_definition(release_folder_path):
             })
 
     # Create dkgs_definition.json file
-    dkgs_definition = {"dkg_type": "Smr", "committee": committee_members}
+    dkgs_definition = [{"dkg_type": "Smr", "committee": committee_members}]
     with open(os.path.join(release_folder_path, "supra-public-configs", "dkgs_definition.json"), "w") as outfile:
         json.dump(dkgs_definition, outfile, indent=4)
 
@@ -66,7 +66,7 @@ def verify_dkgs_definition(release_folder_path):
             cg_public_key = data["list"][data["active"]]["cg_public_key"]
 
             # Check if the information matches the dkgs_definition
-            for committee_member in dkgs_definition["committee"]:
+            for committee_member in dkgs_definition[0]["committee"]:
                 if (committee_member["address"] == address + ":25000" and
                         committee_member["publickey"] == public_key and
                         committee_member["cg_public_key"] == cg_public_key):
