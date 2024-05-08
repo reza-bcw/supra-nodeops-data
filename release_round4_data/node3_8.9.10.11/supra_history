@@ -1,0 +1,63 @@
+Local: (2024-05-07 20:53:36.447978355 +05:30)	 Utc: (2024-05-07 15:23:36.448007804 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-07 20:53:51.369342167 +05:30)	 Utc: (2024-05-07 15:23:51.369363006 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 11:49:04.586121660 +05:30)	 Utc: (2024-05-08 06:19:04.586188111 UTC)
+
+CMD:
+Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "8.9.10.11:25000" }))
+Output:
+
+
+Local: (2024-05-08 11:49:48.640578799 +05:30)	 Utc: (2024-05-08 06:19:48.640593489 UTC)
+
+CMD:
+Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "24.25.26.27:25000" }))
+Output:
+
+
+Local: (2024-05-08 11:50:22.331634420 +05:30)	 Utc: (2024-05-08 06:20:22.331653500 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 11:51:03.608189245 +05:30)	 Utc: (2024-05-08 06:21:03.608209045 UTC)
+
+CMD:
+Key(GenerateProfile(GenerateProfileArgs { name: Some("node3") }))
+Output:
+-------------------------- Profile List ---------------------------------
+	 node3
+ed25519_public_key: 78de96da855a4551ea92c7bfc065f3e699c8089434e5d0d749e516eb30161a78, account_address: 0xc855ff7bdde4f81a4ecec5c92d39fd234b7bae9d8b684f36accd834b30906728
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 12:01:21.307779866 +05:30)	 Utc: (2024-05-08 06:31:21.307800126 UTC)
+
+CMD:
+Key(ActivateProfile(ActivateProfileArgs { name: "node3" }))
+Output:
+-------------------------- Profile List ---------------------------------
+	(*) node3
+ed25519_public_key: 78de96da855a4551ea92c7bfc065f3e699c8089434e5d0d749e516eb30161a78, account_address: 0xc855ff7bdde4f81a4ecec5c92d39fd234b7bae9d8b684f36accd834b30906728
+-------------------------------------------------------------------------
+
+

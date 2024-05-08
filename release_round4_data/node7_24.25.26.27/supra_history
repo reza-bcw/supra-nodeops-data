@@ -1,0 +1,56 @@
+Local: (2024-05-07 20:53:36.450789396 +05:30)	 Utc: (2024-05-07 15:23:36.450815995 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-07 20:53:51.369235989 +05:30)	 Utc: (2024-05-07 15:23:51.369254729 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 11:49:04.585484879 +05:30)	 Utc: (2024-05-08 06:19:04.585545420 UTC)
+
+CMD:
+Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "24.25.26.27:25000" }))
+Output:
+
+
+Local: (2024-05-08 11:50:22.331670820 +05:30)	 Utc: (2024-05-08 06:20:22.331689 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 11:51:03.609969990 +05:30)	 Utc: (2024-05-08 06:21:03.609989790 UTC)
+
+CMD:
+Key(GenerateProfile(GenerateProfileArgs { name: Some("node7") }))
+Output:
+-------------------------- Profile List ---------------------------------
+	 node7
+ed25519_public_key: 8256f3e54eac966e0812fd47cdc664fd0b68eaba08dbce681e70c722c0866b41, account_address: 0x4b2c9bbda0d39aa88bbd41202bf3f6b42b7f2275989739926bb47e12692329bc
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 12:01:21.309530046 +05:30)	 Utc: (2024-05-08 06:31:21.309549037 UTC)
+
+CMD:
+Key(ActivateProfile(ActivateProfileArgs { name: "node7" }))
+Output:
+-------------------------- Profile List ---------------------------------
+	(*) node7
+ed25519_public_key: 8256f3e54eac966e0812fd47cdc664fd0b68eaba08dbce681e70c722c0866b41, account_address: 0x4b2c9bbda0d39aa88bbd41202bf3f6b42b7f2275989739926bb47e12692329bc
+-------------------------------------------------------------------------
+
+

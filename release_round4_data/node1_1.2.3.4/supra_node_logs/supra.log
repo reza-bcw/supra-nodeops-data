@@ -1,0 +1,14 @@
+[2024-05-07T15:23:05.695654Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:41583. Use `nc localhost 41583` to change log level.
+[2024-05-07T15:23:05.695699Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-07T15:23:30.092702Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:34665. Use `nc localhost 34665` to change log level.
+[2024-05-07T15:23:30.092751Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-07T15:23:49.275233Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:44535. Use `nc localhost 44535` to change log level.
+[2024-05-07T15:23:49.275302Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-08T06:19:00.693130Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:44311. Use `nc localhost 44311` to change log level.
+[2024-05-08T06:19:00.693184Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-08T06:20:20.434062Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:33083. Use `nc localhost 33083` to change log level.
+[2024-05-08T06:20:20.434111Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-08T06:20:58.817631Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:36075. Use `nc localhost 36075` to change log level.
+[2024-05-08T06:20:58.817674Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-08T06:31:19.457003Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:32849. Use `nc localhost 32849` to change log level.
+[2024-05-08T06:31:19.457061Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.

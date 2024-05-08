@@ -1,0 +1,56 @@
+Local: (2024-05-07 20:53:36.449658884 +05:30)	 Utc: (2024-05-07 15:23:36.449680413 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-07 20:53:51.369552632 +05:30)	 Utc: (2024-05-07 15:23:51.369580221 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 11:49:04.585703163 +05:30)	 Utc: (2024-05-08 06:19:04.585758254 UTC)
+
+CMD:
+Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "1.2.3.4:25000" }))
+Output:
+
+
+Local: (2024-05-08 11:50:22.331490027 +05:30)	 Utc: (2024-05-08 06:20:22.331510018 UTC)
+
+CMD:
+Key(ListProfile(ListProfileArgs { reveal_secrets: false }))
+Output:
+-------------------------- Profile List ---------------------------------
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 11:51:03.611457831 +05:30)	 Utc: (2024-05-08 06:21:03.611478591 UTC)
+
+CMD:
+Key(GenerateProfile(GenerateProfileArgs { name: Some("node1") }))
+Output:
+-------------------------- Profile List ---------------------------------
+	 node1
+ed25519_public_key: 020fc30f0ca21dca001f2ebee17f88363495d1274be4df682cdd0c1dc3656283, account_address: 0x319c08213f648183c5860a2270ac83535d7b8d70acc2d5b4372dfd5d6488e44d
+-------------------------------------------------------------------------
+
+
+Local: (2024-05-08 12:01:21.307953079 +05:30)	 Utc: (2024-05-08 06:31:21.307974139 UTC)
+
+CMD:
+Key(ActivateProfile(ActivateProfileArgs { name: "node1" }))
+Output:
+-------------------------- Profile List ---------------------------------
+	(*) node1
+ed25519_public_key: 020fc30f0ca21dca001f2ebee17f88363495d1274be4df682cdd0c1dc3656283, account_address: 0x319c08213f648183c5860a2270ac83535d7b8d70acc2d5b4372dfd5d6488e44d
+-------------------------------------------------------------------------
+
+
