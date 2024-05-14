@@ -1,26 +1,26 @@
-Local: (2024-05-13 18:05:56.138248256 +05:30)	 Utc: (2024-05-13 12:35:56.138294997 UTC)
+Local: (2024-05-14 11:47:14.822600531 +05:30)	 Utc: (2024-05-14 06:17:14.822621723 UTC)
 
 CMD:
 Key(GenerateProfile(GenerateProfileArgs { name: Some("node2") }))
 Output:
 -------------------------- Profile List ---------------------------------
 	 node2
-ed25519_public_key: e48aa9369880ffc8e2e3a1dab181a9c736a2a8033d752466e2ce959d7c45891b, account_address: 0x0d44f783a5c86339662917793be255da8a34059320e3234de9816c7e6d2f5145
+ed25519_public_key: 6c358f632fc1495986c4de9f7b64f5eb95abca5821645931f3d67849d6a89c3c, account_address: 0xf48558f1a6eb1bf2a9218e4f1d3f6c827004ede15aaa7901a2ad9e4497b0f56a
 -------------------------------------------------------------------------
 
 
-Local: (2024-05-13 18:06:22.199014781 +05:30)	 Utc: (2024-05-13 12:36:22.199040832 UTC)
+Local: (2024-05-14 11:47:30.712695248 +05:30)	 Utc: (2024-05-14 06:17:30.712711199 UTC)
 
 CMD:
 Key(ActivateProfile(ActivateProfileArgs { name: "node2" }))
 Output:
 -------------------------- Profile List ---------------------------------
 	(*) node2
-ed25519_public_key: e48aa9369880ffc8e2e3a1dab181a9c736a2a8033d752466e2ce959d7c45891b, account_address: 0x0d44f783a5c86339662917793be255da8a34059320e3234de9816c7e6d2f5145
+ed25519_public_key: 6c358f632fc1495986c4de9f7b64f5eb95abca5821645931f3d67849d6a89c3c, account_address: 0xf48558f1a6eb1bf2a9218e4f1d3f6c827004ede15aaa7901a2ad9e4497b0f56a
 -------------------------------------------------------------------------
 
 
-Local: (2024-05-13 18:07:45.816982205 +05:30)	 Utc: (2024-05-13 12:37:45.817001336 UTC)
+Local: (2024-05-14 11:48:25.805650587 +05:30)	 Utc: (2024-05-14 06:18:25.805669298 UTC)
 
 CMD:
 Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "5.6.7.8:25000" }))
