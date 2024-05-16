@@ -1,29 +1,29 @@
-Local: (2024-05-14 12:49:22.349054528 +05:30)	 Utc: (2024-05-14 07:19:22.349077739 UTC)
+Local: (2024-05-16 15:43:36.413027239 +05:30)	 Utc: (2024-05-16 10:13:36.413049760 UTC)
 
 CMD:
-Key(GenerateProfile(GenerateProfileArgs { name: Some("node7") }))
+Key(GenerateProfile(GenerateProfileArgs { name: Some("node7"), force_pass: false }))
 Output:
 -------------------------- Profile List ---------------------------------
 	 node7
-ed25519_public_key: c3257ee3911ce5163a2b2b4c0dfd019171e8c4604fada86ebc74862dcc4783b1, account_address: 0x7dbad146e0b16d6edc2ef65a9dd5a8c13ecc53708cd3793062e36c1db5bb8beb
+ed25519_public_key: 60587973ac5d666623e408eb9f5277474c08f6704cc90ef4e59faa7827d7493c, account_address: 0x37c086d7254ce2a9d82ae879e6e2280ea75c46d09dfbb23100f1940cd8f6dc0f
 -------------------------------------------------------------------------
 
 
-Local: (2024-05-14 12:49:35.084433571 +05:30)	 Utc: (2024-05-14 07:19:35.084453451 UTC)
+Local: (2024-05-16 15:46:29.705123078 +05:30)	 Utc: (2024-05-16 10:16:29.705141138 UTC)
 
 CMD:
-Key(ActivateProfile(ActivateProfileArgs { name: "node7" }))
+Key(ActivateProfile(ActivateProfileArgs { name: "node7", force_pass: false }))
 Output:
 -------------------------- Profile List ---------------------------------
 	(*) node7
-ed25519_public_key: c3257ee3911ce5163a2b2b4c0dfd019171e8c4604fada86ebc74862dcc4783b1, account_address: 0x7dbad146e0b16d6edc2ef65a9dd5a8c13ecc53708cd3793062e36c1db5bb8beb
+ed25519_public_key: 60587973ac5d666623e408eb9f5277474c08f6704cc90ef4e59faa7827d7493c, account_address: 0x37c086d7254ce2a9d82ae879e6e2280ea75c46d09dfbb23100f1940cd8f6dc0f
 -------------------------------------------------------------------------
 
 
-Local: (2024-05-14 12:50:30.742910711 +05:30)	 Utc: (2024-05-14 07:20:30.742928581 UTC)
+Local: (2024-05-16 15:48:11.410780738 +05:30)	 Utc: (2024-05-16 10:18:11.410797839 UTC)
 
 CMD:
-Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "25.26.27.28:25000" }))
+Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "25.26.27.28:25000", force_pass: false }))
 Output:
 
 
