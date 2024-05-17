@@ -2,3 +2,10 @@
 [2024-05-17T06:06:06.939189Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
 [2024-05-17T06:06:22.585532Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:45869. Use `nc localhost 45869` to change log level.
 [2024-05-17T06:06:22.585614Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-17T06:08:52.430123Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:39023. Use `nc localhost 39023` to change log level.
+[2024-05-17T06:08:52.430190Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-17T06:09:57.104595Z+00:00] ERROR [PANIC]: Panic occurred: PanicInfo { payload: Any { .. }, message: Some(called `Result::unwrap()` on an `Err` value: Failed to read file: "extracted/release_round4_data/operators/node2_5.6.7.8/validator_public_identity.toml" No such file or directory (os error 2)), location: Location { file: "/home/yoga07/supra/smr-moonshot/supra/src/keys/mod.rs", line: 356, col: 30 }, can_unwind: true, force_no_backtrace: false } 
+ Backtrace:
+disabled backtrace
+[2024-05-17T06:11:14.883448Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:46349. Use `nc localhost 46349` to change log level.
+[2024-05-17T06:11:14.883512Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.

@@ -20,3 +20,10 @@ ed25519_public_key: b6e34d665e7ce7e55a5c40b064dd9d6708a37b5904b1a518ab74dd0edbf3
 -------------------------------------------------------------------------
 
 
+Local: (2024-05-17 11:41:17.122736299 +05:30)	 Utc: (2024-05-17 06:11:17.122754099 UTC)
+
+CMD:
+Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "17.18.19.20:25000", force_pass: false }))
+Output:
+
+
