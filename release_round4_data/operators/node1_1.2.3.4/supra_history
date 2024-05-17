@@ -1,41 +1,22 @@
-Local: (2024-05-16 15:43:36.411533293 +05:30)	 Utc: (2024-05-16 10:13:36.411552844 UTC)
+Local: (2024-05-17 11:36:10.245277992 +05:30)	 Utc: (2024-05-17 06:06:10.245301322 UTC)
 
 CMD:
 Key(GenerateProfile(GenerateProfileArgs { name: Some("node1"), force_pass: false }))
 Output:
 -------------------------- Profile List ---------------------------------
 	 node1
-ed25519_public_key: 5489aed5ac115ab70a78439fce6e64abb17995f25381eb9576249c621233d0ff, account_address: 0x91e3d05750ddfdb3bd4e81fd2fea0162952301474176ae1fbb66477b91fdd5a2
+ed25519_public_key: 289c59c396849d7cd45dfd6a85f7a1fd6980a60373aa0e8b9613ac606652c2da, account_address: 0x8710dff8c3d6306803f3de55d0cdc1b79dd5cdca2056e23b4fdc0b33f7342a73
 -------------------------------------------------------------------------
 
 
-Local: (2024-05-16 15:46:29.708048626 +05:30)	 Utc: (2024-05-16 10:16:29.708066146 UTC)
+Local: (2024-05-17 11:36:24.297180747 +05:30)	 Utc: (2024-05-17 06:06:24.297197328 UTC)
 
 CMD:
 Key(ActivateProfile(ActivateProfileArgs { name: "node1", force_pass: false }))
 Output:
 -------------------------- Profile List ---------------------------------
 	(*) node1
-ed25519_public_key: 5489aed5ac115ab70a78439fce6e64abb17995f25381eb9576249c621233d0ff, account_address: 0x91e3d05750ddfdb3bd4e81fd2fea0162952301474176ae1fbb66477b91fdd5a2
+ed25519_public_key: 289c59c396849d7cd45dfd6a85f7a1fd6980a60373aa0e8b9613ac606652c2da, account_address: 0x8710dff8c3d6306803f3de55d0cdc1b79dd5cdca2056e23b4fdc0b33f7342a73
 -------------------------------------------------------------------------
 
 
-Local: (2024-05-16 15:48:11.406014580 +05:30)	 Utc: (2024-05-16 10:18:11.406036340 UTC)
-
-CMD:
-Key(GenerateValidatorIdentity(GenerateValidatorIdentityArgs { socket_addr: "1.2.3.4:25000", force_pass: false }))
-Output:
-
-
-Local: (2024-05-17 00:32:55.196988478 +05:30)	 Utc: (2024-05-16 19:02:55.197016998 UTC)
-
-CMD:
-Key(BuildSupraCommittee(BuildSupraCommittee { url: "https://github.com/Entropy-Foundation/supra-nodeops-data/archive/refs/heads/genesis-ceremony.zip" }))
-Output:
-Error running Keys command Keys directory not found in archive: supra-nodeops-data-genesis-ceremony/release_round4_data/operators
-Local: (2024-05-17 00:34:44.202708081 +05:30)	 Utc: (2024-05-16 19:04:44.202730731 UTC)
-
-CMD:
-Key(BuildSupraCommittee(BuildSupraCommittee { url: "https://github.com/Entropy-Foundation/supra-nodeops-data/archive/refs/heads/genesis-ceremony.zip" }))
-Output:
-Error running Keys command Keys directory not found in archive: supra-nodeops-data-genesis-ceremony/release_round4_data/operators
