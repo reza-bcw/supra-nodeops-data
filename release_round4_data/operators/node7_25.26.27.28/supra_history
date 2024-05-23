@@ -27,3 +27,17 @@ ed25519_public_key: b3d4013a7823557e8854caf0f36da7c4c57bb8f482c2b131e802161258f6
 -------------------------------------------------------------------------
 
 
+Local: (2024-05-23 21:31:21.071387691 +05:30)	 Utc: (2024-05-23 16:01:21.071409042 UTC)
+
+CMD:
+Genesis(BuildSupraCommittee(BuildSupraCommittee { url: "https://github.com/Entropy-Foundation/supra-nodeops-data/archive/refs/heads/genesis-ceremony.zip" }))
+Output:
+
+
+Local: (2024-05-23 21:31:38.936239943 +05:30)	 Utc: (2024-05-23 16:01:38.936264133 UTC)
+
+CMD:
+Genesis(SignSupraCommittee(SignSupraCommittee))
+Output:
+
+
