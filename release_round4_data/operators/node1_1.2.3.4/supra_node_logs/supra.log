@@ -1,11 +1,6 @@
-[2024-05-17T06:06:06.934862Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:39145. Use `nc localhost 39145` to change log level.
-[2024-05-17T06:06:06.934931Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
-[2024-05-17T06:06:22.589224Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:36797. Use `nc localhost 36797` to change log level.
-[2024-05-17T06:06:22.589305Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
-[2024-05-17T06:08:52.427316Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:32973. Use `nc localhost 32973` to change log level.
-[2024-05-17T06:08:52.427404Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
-[2024-05-17T06:09:58.295845Z+00:00] ERROR [PANIC]: Panic occurred: PanicInfo { payload: Any { .. }, message: Some(called `Result::unwrap()` on an `Err` value: Failed to read file: "extracted/release_round4_data/operators/node2_5.6.7.8/validator_public_identity.toml" No such file or directory (os error 2)), location: Location { file: "/home/yoga07/supra/smr-moonshot/supra/src/keys/mod.rs", line: 356, col: 30 }, can_unwind: true, force_no_backtrace: false } 
- Backtrace:
-disabled backtrace
-[2024-05-17T06:11:14.882183Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:44537. Use `nc localhost 44537` to change log level.
-[2024-05-17T06:11:14.882286Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-23T15:27:36.070778Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:46841. Use `nc localhost 46841` to change log level.
+[2024-05-23T15:27:36.070877Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-23T15:28:08.067259Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:35607. Use `nc localhost 35607` to change log level.
+[2024-05-23T15:28:08.067350Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
+[2024-05-23T15:28:21.855803Z+00:00]  INFO supra_logger: Starting logger runtime at localhost:44867. Use `nc localhost 44867` to change log level.
+[2024-05-23T15:28:21.855886Z+00:00]  INFO supra::common::verbose: Log level INFO enabled.
