@@ -9,5 +9,6 @@
             -> smr_public_key.json
             -> validator_public_identity.toml
         signatures/
-            -> socketaddr_genesis_signatures
+            -> socketaddr1_genesis_signatures
+            -> socketaddr2_genesis_signatures
         

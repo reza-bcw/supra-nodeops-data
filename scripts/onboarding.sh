@@ -6,7 +6,7 @@ CONFIG_FILE="$(pwd)/operator_config.toml"
 BASE_PATH="$(pwd)"
 
 
-GITHUB_URL_SSH="git@github.com:amit-supraoracles/supra-nodeops-data.git"
+GITHUB_URL_SSH="git@github.com:Entropy-Foundation/supra-nodeops-data.git"
 
 GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf.sh"
 GRAFANA_CENTOS="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf-centos.sh"
@@ -518,7 +518,7 @@ function setup_repository_for_nodeOp() {
     echo "Check status"
     git remote -v
     
-    git checkout genesis-ceremony
+    git checkout master
 
     echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
 
@@ -728,14 +728,14 @@ copy_signature_file_to_github() {
 
 validate_docker_image() {
     while true; do
-        read -p "Please provide the docker image (asia format without http, starting with 'asia'): " image_response
+        read -p "Please provide the docker image (must start with 'asia', contain 'validator-node', and have a 'v' tag): " image_response
 
-        if [[ "$image_response" =~ ^asia.*\$ ]]; then
+        if [[ "$image_response" =~ ^asia.*validator-node.*:v[0-9]+\.* ]]; then
             echo "Valid Docker image provided: $image_response"
             SUPRA_DOCKER_IMAGE="$image_response"
             break
         else
-            echo "Invalid Docker image format. Please provide a valid image starting with 'asia' and ending with '.rc1'."
+            echo "Invalid Docker image format. Please provide a valid image starting with 'asia', containing 'validator-node', and having a 'v' tag."
         fi
     done
 }
