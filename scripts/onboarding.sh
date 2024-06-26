@@ -728,9 +728,9 @@ copy_signature_file_to_github() {
 
 validate_docker_image() {
     while true; do
-        read -p "Please provide the docker image (.rc1 format, starting with 'asia'): " image_response
+        read -p "Please provide the docker image (asia format without http, starting with 'asia'): " image_response
 
-        if [[ "$image_response" =~ ^asia.*\.rc1$ ]]; then
+        if [[ "$image_response" =~ ^asia.*\$ ]]; then
             echo "Valid Docker image provided: $image_response"
             SUPRA_DOCKER_IMAGE="$image_response"
             break
