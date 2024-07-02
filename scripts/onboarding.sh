@@ -1105,15 +1105,21 @@ while true; do
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
 
             echo "Adding Grafana dashboard..."
+            echo "Select your system type"
+            echo "1. Ubuntu/Debian Linux"
+            echo "2. Amazon Linux/Centos Linux"
+            read -p "Enter your system type: " prompt_user
 
-            if prompt_user "Ubuntu/Debian Linux"; then
+            if [ "$prompt_user" = "1" ]; then
                 wget "$GRAFANA"
                 chmod +x nodeops-monitoring-telegraf.sh
                 sudo ./nodeops-monitoring-telegraf.sh
-            else
+            elif [ "$prompt_user" = "2" ]; then
                 wget "$GRAFANA_CENTOS"
                 chmod +x nodeops-monitoring-telegraf-centos.sh
                 sudo ./nodeops-monitoring-telegraf-centos.sh
+            else
+                echo "Invalid option selected. Please enter 1 for Ubuntu/Debian Linux or 2 for Amazon Linux/Centos Linux."
             fi
 
             echo "Starting the Node"
