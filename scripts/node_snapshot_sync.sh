@@ -38,7 +38,7 @@ echo "Supra container stopped"
 wget -O ./supra_configs/latest_snapshot.zip https://testnet-snapshot.supra.com/snapshots%2Flatest_snapshot.zip
 
 # Unzip snapshot 
-unzip ./supra_configs/latest_snapshot.zip
+unzip ./supra_configs/latest_snapshot.zip -d ./supra_configs/
 
 # Copy snapshot into smr_database
 cp ./supra_configs/snapshot/snapshot_*/* ./supra_configs/smr_storage/
