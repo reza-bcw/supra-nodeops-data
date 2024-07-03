@@ -44,18 +44,20 @@ unzip ./supra_configs/latest_snapshot.zip -d ./supra_configs/
 cp ./supra_configs/snapshot/snapshot_*/* ./supra_configs/smr_storage/
 
 # Start container 
-echo "Stopping supra container"
+echo "Start supra container"
 docker start supra_$ip_address
 echo 
-echo "Supra container stopped"
+echo "Supra container started"
 
 # Start validator node
+enc_password=$(grep '^password' operator_config.toml | awk -F' = ' '{print $2}' | tr -d '"')
+decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
 if docker ps --filter "name=supra_$ip_address" --format '{{.Names}}' | grep -q supra_$ip_address; then
-    docker exec -it supra_$ip_address /supra/supra node smr run
-    sleep 60
-    echo "Please check logs for node syncing process"
-    exit 1
+        expect << EOF
+        spawn docker exec -it supra_$ip_address /supra/supra node smr run
+        expect "password:" { send "$decoded_password\r" }
+        expect eof
+EOF
 else
     echo "Your container supra_$ip_address is not running."
 fi
-
