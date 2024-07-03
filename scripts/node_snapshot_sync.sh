@@ -14,9 +14,7 @@ if ! command -v unzip &> /dev/null; then
     fi
 else
     echo ""
-fi
-# sudo apt update
-# sudo apt install unzip 
+fi 
 
 # Clean old database
 rm -rf supra_configs/ledger_storage supra_configs/smr_storage/* supra_configs/supra_node_logs
@@ -42,9 +40,6 @@ wget -O ./supra_configs/latest_snapshot.zip https://testnet-snapshot.supra.com/s
 # Unzip snapshot 
 unzip ./supra_configs/latest_snapshot.zip
 
-# Clean smr_database 
-# rm -rf ./supra_configs/smr_storage/*
-
 # Copy snapshot into smr_database
 cp ./supra_configs/snapshot/snapshot_*/* ./supra_configs/smr_storage/
 
@@ -57,10 +52,10 @@ echo "Supra container stopped"
 # Start validator node
 if docker ps --filter "name=supra_$ip_address" --format '{{.Names}}' | grep -q supra_$ip_address; then
     docker exec -it supra_$ip_address /supra/supra node smr run
+    sleep 60
+    echo "Please check logs for node syncing process"
+    exit 1
 else
     echo "Your container supra_$ip_address is not running."
 fi
-
-echo "Your script has ended"
-
 
