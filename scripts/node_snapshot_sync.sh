@@ -17,7 +17,7 @@ else
 fi 
 
 # Clean old database
-rm -rf supra_configs/ledger_storage supra_configs/smr_storage/* supra_configs/supra_node_logs
+rm -rf ./supra_configs/ledger_storage ./supra_configs/smr_storage/* ./supra_configs/supra_node_logs
 
 # Parse ip_address from operator_config.toml
 ip_address=$(grep 'ip_address' operator_config.toml | awk -F'=' '{print $2}' | tr -d ' "')
@@ -35,6 +35,7 @@ echo
 echo "Supra container stopped"
 
 # Download snapshot 
+echo "Downloading the latest snapshot......"
 wget -O ./supra_configs/latest_snapshot.zip https://testnet-snapshot.supra.com/snapshots%2Flatest_snapshot.zip
 
 # Unzip snapshot 
