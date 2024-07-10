@@ -55,7 +55,6 @@ echo "Running new docker image"
         -e "SUPRA_MAX_LOG_FILE_SIZE=4000000" \
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
         -e "SUPRA_MAX_LOG_FILES=20" \
-        --net=host \
         -itd  asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v4.1.4
 echo
 echo "New docker Container with image is created"
@@ -71,7 +70,7 @@ wget -O ./supra_configs/latest_snapshot.zip https://testnet-snapshot.supra.com/s
 unzip ./supra_configs/latest_snapshot.zip -d ./supra_configs/
 
 # Copy snapshot into smr_database
-cp ./supra_configs/snapshot/snapshot_*/* ./supra_configs/smr_storage/
+sudo cp ./supra_configs/snapshot/snapshot_*/* ./supra_configs/smr_storage/
 
 # Start validator node
 enc_password=$(grep '^password' operator_config.toml | awk -F' = ' '{print $2}' | tr -d '"')
