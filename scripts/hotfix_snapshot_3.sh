@@ -30,9 +30,12 @@ docker stop supra_$ip_address
 echo 
 echo "Supra container stopped"
 
+
 # Clean old database
+echo "Clean old DB......"
 sudo rm -rf ./supra_configs/ledger_storage ./supra_configs/smr_storage/* ./supra_configs/supra_node_logs ./supra_configs/latest_snapshot.zip ./supra_configs/snapshot
 
+echo
 echo "Starting supra container"
 docker start supra_$ip_address
 echo 
