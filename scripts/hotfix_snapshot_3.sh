@@ -30,37 +30,6 @@ docker stop supra_$ip_address
 echo 
 echo "Supra container stopped"
 
-# Remove the Docker container if it exists
-# echo
-# echo "Removing supra container"
-# docker rm supra_$ip_address
-# echo
-# echo "Supra container removed"
-
-# Remove the old Docker image
-# echo
-# echo "Deleting old docker image"
-# docker rmi asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v4.1.3
-# echo
-# echo "Deleted the old docker image"
-
-# Run the Docker container with the updated configuration
-# echo
-# echo "Running new docker image"
-
-#     docker run --name "supra_$ip_address" \
-#         -v ./supra_configs:/supra/configs \
-#         -e "SUPRA_HOME=/supra/configs" \
-#         -e "RUST_LOG=info" \
-#         -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
-#         -e "SUPRA_MAX_LOG_FILE_SIZE=4000000000" \
-#         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
-#         -e "SUPRA_MAX_LOG_FILES=20" \
-#         --net=host \
-#         -itd  asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v4.1.4
-# echo
-# echo "New docker Container with image is created"
-
 # Clean old database
 sudo rm -rf ./supra_configs/ledger_storage ./supra_configs/smr_storage/* ./supra_configs/supra_node_logs ./supra_configs/latest_snapshot.zip ./supra_configs/snapshot
 
