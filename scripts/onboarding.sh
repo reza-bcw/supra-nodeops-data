@@ -518,7 +518,7 @@ function setup_repository_for_nodeOp() {
     echo "Check status"
     git remote -v
     
-    git checkout master
+    git checkout genesis-ceremony
 
     echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
 
