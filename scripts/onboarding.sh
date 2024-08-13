@@ -522,7 +522,7 @@ function setup_repository_for_nodeOp() {
 
     echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
 
-    cd release_round4_data/operators || exit
+    cd release_round5_data/operators || exit
 
     if [ ! -d "supra_${ip_address}" ]; then
         mkdir "supra_${ip_address}"
@@ -770,12 +770,12 @@ function automated_validator_node_setup_and_configuration() {
     generate_validator_identity
     generate_hashmap_phase_1 hashmap_phase_1_previous.toml
     setup_repository_for_nodeOp $SCRIPT_EXECUTION_LOCATION
-    copy_files_to_node_operator_folder $SCRIPT_EXECUTION_LOCATION $BASE_PATH/supra-nodeops-data/release_round4_data/operators/supra_$IP_ADDRESS 
+    copy_files_to_node_operator_folder $SCRIPT_EXECUTION_LOCATION $BASE_PATH/supra-nodeops-data/release_round5_data/operators/supra_$IP_ADDRESS 
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo "                                         ✔ Phase 1: Completed Successfully                                       "
     echo ""
-    echo "1. Files are copied to supra-nodeops-data/release_round4_data/operators/supra_$IP_ADDRESS"
+    echo "1. Files are copied to supra-nodeops-data/release_round5_data/operators/supra_$IP_ADDRESS"
     echo "2. Please create a fork PR, and submit it to Supra Team"    
     echo "_________________________________________________________________________________________________________________"
     echo ""
@@ -814,7 +814,7 @@ EOF
     generate_hashmap_phase_2 "hashmap_phase_2_previous.toml" "$SCRIPT_EXECUTION_LOCATION/$sig_file"
     echo "clone signature files to github"
 
-    destination_path="$BASE_PATH/supra-nodeops-data/release_round4_data/signatures"
+    destination_path="$BASE_PATH/supra-nodeops-data/release_round5_data/signatures"
 
     copy_signature_file_to_github "$SCRIPT_EXECUTION_LOCATION/$FILE_NAME" "$destination_path"
 
