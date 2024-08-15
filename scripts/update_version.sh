@@ -8,45 +8,39 @@ if [ -z "$ip_address" ]; then
     echo "IP address not found in config file."
     exit 1
 fi
-
-# Stop the Docker container if it's already running
+# Stop the Docker container if it's running
 echo "Stopping supra container"
-docker stop supra_$ip_address
-echo 
+if ! docker stop supra_$ip_address; then
+    echo "Failed to stop supra container. Exiting..."
+    exit 1
+fi
 echo "Supra container stopped"
 
-
-# Remove the Docker container if it exists
-echo
+# Remove the Docker container
 echo "Removing supra container"
-docker rm supra_$ip_address
-echo
+if ! docker rm supra_$ip_address; then
+    echo "Failed to remove supra container. Exiting..."
+    exit 1
+fi
 echo "Supra container removed"
 
 # Remove the old Docker image
-echo
 echo "Deleting old docker image"
-docker rmi asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v5.0.0.rc3
-echo
-echo "Deleted the old docker image"
+if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v5.0.0.rc3; then
+    echo "Failed to delete old Docker image. Exiting..."
+    exit 1
+fi
+echo "Deleted the old Docker image"
 
-# Update the configuration in smr_settings.toml
-echo
+# Check if smr_settings.toml exists before creating a new one
 echo "Changing the smr settings file"
-
-    echo ""
-    echo "CREATE SMR SETTINGS TOML FILE "
-    echo ""
-    sudo rm -rf /home/lenovo/nodeops/nodeop-onboarding-script/latest_onboarding_script/smr_settings.toml
-
-    smr_settings_file="/home/lenovo/nodeops/nodeop-onboarding-script/latest_onboarding_script/smr_settings.toml"
-
-    if [ -f "${smr_settings_file}" ]; then
-        echo "smr_settings.toml already exists at ${path_passed}. Skipping creation."
-        return 0
-    fi
-
-    # Create smr_settings.toml content
+smr_settings_file="./supra_configs/smr_settings.toml"
+rm ${smr_settings_file}
+if [ -f "${smr_settings_file}" ]; then
+    echo "smr_settings.toml already exists. Skipping creation."
+else
+    # Create smr_settings.toml
+    echo "Creating smr_settings.toml"
     cat <<EOF > "${smr_settings_file}"
 [instance]
 chain_id = 6
@@ -81,26 +75,28 @@ server_cert_path = "configs/server_supra_certificate.pem"
 server_private_key_path = "configs/server_supra_key.pem"
 smr_storage = "configs/smr_storage"
 EOF
+    echo "smr_settings.toml created"
+fi
 
-echo "Changed the smr settings file"
-
-
-# Run the Docker container with the updated configuration
-echo
+# Run the Docker container
 echo "Running new docker image"
-
-docker run --name supra_$ip_address \
+if ! docker run --name supra_$ip_address \
     -v ./supra_configs:/supra/configs \
     -e="SUPRA_HOME=/supra/configs" \
     -e="SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
     -e="SUPRA_MAX_LOG_FILE_SIZE=4000000" \
     -e="SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
     -e="SUPRA_MAX_LOG_FILES=20" \
-    --net=host -itd asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v5.0.0
-echo
-echo "New docker image is created"
+    --net=host -itd asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v5.0.0; then
+    echo "Failed to run new Docker image. Exiting..."
+    exit 1
+fi
+echo "New Docker image created"
 
-
+# Update hash in hashmap_phase_1_previous.toml
 new_sha=$(sha256sum ./supra_configs/smr_settings.toml | awk '{print $1}')
-echo "$new_sha"
-sed -i.bak "s|\(smr_settings.toml\s*=\s*\).*|\1\"$new_sha\"|" "./supra_configs/hashmap_phase_1_previous.toml"
+if ! sed -i.bak "s|\(smr_settings.toml\s*=\s*\).*|\1\"$new_sha\"|" "./supra_configs/hashmap_phase_1_previous.toml"; then
+    echo "Failed to update hashmap_phase_1_previous.toml. Exiting..."
+    exit 1
+fi
+echo "Updated smr_settings.toml hash"
