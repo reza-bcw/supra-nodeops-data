@@ -165,9 +165,6 @@ archive_and_remove_phase_1_files() {
                 zip -r old-phase_1_archived.zip phase_1_archived_temp.zip
                 rm phase_1_archived_temp.zip
                 echo "New archive added to existing old-phase_1_archived.zip"
-
-                rm old-phase_1_archived.zip
-                echo "old-phase_1_archived.zip deleted"
             else
                 mv phase_1_archived.zip old-phase_1_archived.zip
                 echo "Existing archive renamed to old-phase_1_archived.zip"
@@ -518,11 +515,11 @@ function setup_repository_for_nodeOp() {
     echo "Check status"
     git remote -v
     
-    git checkout master
+    git checkout genesis-ceremony
 
     echo "Current branch: $(git rev-parse --abbrev-ref HEAD)"
 
-    cd release_round4_data/operators || exit
+    cd release_round5_data/operators || exit
 
     if [ ! -d "supra_${ip_address}" ]; then
         mkdir "supra_${ip_address}"
@@ -770,12 +767,12 @@ function automated_validator_node_setup_and_configuration() {
     generate_validator_identity
     generate_hashmap_phase_1 hashmap_phase_1_previous.toml
     setup_repository_for_nodeOp $SCRIPT_EXECUTION_LOCATION
-    copy_files_to_node_operator_folder $SCRIPT_EXECUTION_LOCATION $BASE_PATH/supra-nodeops-data/release_round4_data/operators/supra_$IP_ADDRESS 
+    copy_files_to_node_operator_folder $SCRIPT_EXECUTION_LOCATION $BASE_PATH/supra-nodeops-data/release_round5_data/operators/supra_$IP_ADDRESS 
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo "                                         ✔ Phase 1: Completed Successfully                                       "
     echo ""
-    echo "1. Files are copied to supra-nodeops-data/release_round4_data/operators/supra_$IP_ADDRESS"
+    echo "1. Files are copied to supra-nodeops-data/release_round5_data/operators/supra_$IP_ADDRESS"
     echo "2. Please create a fork PR, and submit it to Supra Team"    
     echo "_________________________________________________________________________________________________________________"
     echo ""
@@ -814,7 +811,7 @@ EOF
     generate_hashmap_phase_2 "hashmap_phase_2_previous.toml" "$SCRIPT_EXECUTION_LOCATION/$sig_file"
     echo "clone signature files to github"
 
-    destination_path="$BASE_PATH/supra-nodeops-data/release_round4_data/signatures"
+    destination_path="$BASE_PATH/supra-nodeops-data/release_round5_data/signatures"
 
     copy_signature_file_to_github "$SCRIPT_EXECUTION_LOCATION/$FILE_NAME" "$destination_path"
 
@@ -1105,15 +1102,21 @@ while true; do
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
 
             echo "Adding Grafana dashboard..."
+            echo "Select your system type"
+            echo "1. Ubuntu/Debian Linux"
+            echo "2. Amazon Linux/Centos Linux"
+            read -p "Enter your system type: " prompt_user
 
-            if prompt_user "Ubuntu/Debian Linux"; then
+            if [ "$prompt_user" = "1" ]; then
                 wget "$GRAFANA"
                 chmod +x nodeops-monitoring-telegraf.sh
                 sudo ./nodeops-monitoring-telegraf.sh
-            else
+            elif [ "$prompt_user" = "2" ]; then
                 wget "$GRAFANA_CENTOS"
                 chmod +x nodeops-monitoring-telegraf-centos.sh
                 sudo ./nodeops-monitoring-telegraf-centos.sh
+            else
+                echo "Invalid option selected. Please enter 1 for Ubuntu/Debian Linux or 2 for Amazon Linux/Centos Linux."
             fi
 
             echo "Starting the Node"
