@@ -26,7 +26,7 @@ echo "Supra container removed"
 # Remove the old Docker image
 echo
 echo "Deleting old docker image"
-docker rmi asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v4.0.0
+docker rmi asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v5.0.0.rc3
 echo
 echo "Deleted the old docker image"
 
@@ -34,14 +34,53 @@ echo "Deleted the old docker image"
 echo
 echo "Changing the smr settings file"
 
-sed -i.bak "s/\("halt_block_production_when_no_txs"\s*=\s*\).*/\1false/" "./supra_configs/smr_settings.toml"
+    echo ""
+    echo "CREATE SMR SETTINGS TOML FILE "
+    echo ""
+    sudo rm -rf /home/lenovo/nodeops/nodeop-onboarding-script/latest_onboarding_script/smr_settings.toml
 
-sed -i.bak "s/\("prune_block_max_time_ms"\s*=\s*\).*/\1172800000/" "./supra_configs/smr_settings.toml"
+    smr_settings_file="/home/lenovo/nodeops/nodeop-onboarding-script/latest_onboarding_script/smr_settings.toml"
 
-sed -i.bak "s/\("max_block_delay_ms"\s*=\s*\).*/\12500/" "./supra_configs/smr_settings.toml"
+    if [ -f "${smr_settings_file}" ]; then
+        echo "smr_settings.toml already exists at ${path_passed}. Skipping creation."
+        return 0
+    fi
 
-sed -i.bak "s/\("epoch_duration_secs"\s*=\s*\).*/\17200/" "./supra_configs/smr_settings.toml"
-echo
+    # Create smr_settings.toml content
+    cat <<EOF > "${smr_settings_file}"
+[instance]
+chain_id = 6
+epoch_duration_secs = 7200
+is_testnet = true
+genesis_timestamp_microseconds = 1723660200000000
+
+[mempool]
+max_batch_delay_ms = 500
+max_batch_size_bytes = 500000
+sync_retry_delay_ms = 5000
+sync_retry_nodes = 3
+
+[moonshot]
+block_recency_bound_ms = 500
+halt_block_production_when_no_txs = false
+leader_elector = "FairSuccession"
+max_block_delay_ms = 2500
+max_payload_items_per_block = 100
+message_recency_bound_rounds = 10
+sync_retry_delay_ms = 2500
+timeout_delay_ms = 5000
+
+[node]
+connection_refresh_timeout_sec = 20
+ledger_storage = "configs/ledger_storage"
+epochs_to_retain = 84
+resume = true
+root_ca_cert_path = "configs/ca_certificate.pem"
+rpc_access_port = 26000
+server_cert_path = "configs/server_supra_certificate.pem"
+server_private_key_path = "configs/server_supra_key.pem"
+smr_storage = "configs/smr_storage"
+EOF
 
 echo "Changed the smr settings file"
 
@@ -57,7 +96,7 @@ docker run --name supra_$ip_address \
     -e="SUPRA_MAX_LOG_FILE_SIZE=4000000" \
     -e="SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
     -e="SUPRA_MAX_LOG_FILES=20" \
-    --net=host -itd asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v4.0.2
+    --net=host -itd asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v5.0.0
 echo
 echo "New docker image is created"
 
