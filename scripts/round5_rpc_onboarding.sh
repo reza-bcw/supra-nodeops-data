@@ -257,6 +257,15 @@ EOF
     # Copy snapshot into smr_database
     cp ./supra_configs/snapshot/snapshot_*/* ./supra_configs/rpc_store/
 
+
+    echo ""
+    echo "_________________________________________________________________________________________________________________"
+    echo ""
+    echo "                                         ✔ Phase 1: Completed Successfully                                       "
+    echo ""
+    echo "_________________________________________________________________________________________________________________"
+    echo ""
+    echo ""      
 }
 
 start_supra_rpc_node() {
@@ -273,6 +282,15 @@ start_supra_rpc_node() {
 EOF
     echo ""
     echo "RPC Node started"
+    echo "_________________________________________________________________________________________________________________"
+    echo ""
+    echo "                                         ✔ Phase 2: Completed Successfully                                       "
+    echo ""
+    echo "1. Please share your RPC IP Address: $IP_ADDRESS with Supra Team over Discord" 
+    echo "" 
+    echo "_________________________________________________________________________________________________________________"
+    echo ""
+    echo ""   
 }
 
 while true; do
