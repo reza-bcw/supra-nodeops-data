@@ -2,11 +2,11 @@
 
 SUPRA_DOCKER_IMAGE=""
 SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_configs"
-CONFIG_FILE="$(pwd)/operator_config.toml"
+CONFIG_FILE="$(pwd)/operator_rpc_config.toml"
 BASE_PATH="$(pwd)"
 
 create_folder_and_files() {
-    touch operator_config.toml
+    touch operator_rpc_config.toml
     if [ ! -d "supra_configs" ]; then
         mkdir supra_configs
     else
@@ -58,13 +58,13 @@ check_gcloud_installed() {
 }
 
 # Check if the user is not root
-check_not_root() {
-    if [ "$(id -u)" = "0" ]; then
-        echo "You are running as root. Please run as a non-root user."
-        echo ""
-        exit 1
-    fi
-}
+# check_not_root() {
+#     if [ "$(id -u)" = "0" ]; then
+#         echo "You are running as root. Please run as a non-root user."
+#         echo ""
+#         exit 1
+#     fi
+# }
 
 check_toml_cli() {
     if ! command -v toml &> /dev/null
@@ -118,7 +118,7 @@ prerequisites() {
     echo ""
     echo "CHECKING PREREQUISITES"
     echo ""
-    check_not_root
+    # check_not_root
     check_expect_installation
     check_sha256sum_installed
     check_docker_installed
@@ -170,7 +170,7 @@ function create_supra_container() {
     echo "CREATE DOCKER CONTAINER"
     echo ""
 
-    IP_ADDRESS=$(extract_ip "operator_config.toml")
+    IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
     read -p "Enter docker Image: " supra_docker_image
 
     docker run --name "supra_rpc_$IP_ADDRESS" \
@@ -193,7 +193,7 @@ function create_supra_container() {
 }
 
 create_config_toml() {
-    IP_ADDRESS=$(extract_ip "operator_config.toml")
+    IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
     echo ""
     echo "CREATE CONFIG TOML FILE "
     echo ""
@@ -205,7 +205,7 @@ create_config_toml() {
     # Create config.toml content
     cat <<EOF > "${config_file}"
 archive_path = "configs/rpc_archive"
-bind_addr = "0.0.0.0:26000"
+bind_addr = "0.0.0.0:27000"
 block_provider_is_trusted = false
 consensus_client_cert_path = "configs/client_supra_certificate.pem"
 consensus_client_private_key_path = "configs/client_supra_key.pem"
@@ -227,7 +227,7 @@ is_testnet = true
 genesis_timestamp_microseconds = 1723660200000000
 
 EOF
-    docker cp supra_configs/config.toml supra_rpc_$IP_ADDRESS:/supra/
+    docker cp ./supra_configs/config.toml supra_rpc_$IP_ADDRESS:/supra/
 
     wget -O ./supra_configs/ca_certificate.pem https://testnet-snapshot.supra.com/certs/ca_certificate.pem
 
@@ -269,7 +269,7 @@ EOF
 }
 
 start_supra_rpc_node() {
-    IP_ADDRESS=$(extract_ip "operator_config.toml")
+    IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
 
     echo "Starting the RPC node......."
 
