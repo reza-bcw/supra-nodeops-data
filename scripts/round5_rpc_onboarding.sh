@@ -176,7 +176,7 @@ function create_supra_container() {
     docker run --name "supra_rpc_$IP_ADDRESS" \
         -v ./supra_configs:/supra/configs \
         -e "SUPRA_HOME=/supra/configs" \
-        -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
+        -e "SUPRA_LOG_DIR=/supra/configs/rpc_node_logs" \
         -e "SUPRA_MAX_LOG_FILE_SIZE=400000000" \
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=10" \
         -e "SUPRA_MAX_LOG_FILES=20" \
@@ -242,7 +242,7 @@ EOF
     docker cp supra_configs/genesis.blob supra_rpc_$IP_ADDRESS:/supra/
 
     # Clean old database
-    rm -rf ./supra_configs/rpc_archive ./supra_configs/rpc_ledger ./supra_configs/snapshot ./supra_configs/rpc_store ./supra_configs/supra_node_logs
+    rm -rf ./supra_configs/rpc_archive ./supra_configs/rpc_ledger ./supra_configs/snapshot ./supra_configs/rpc_store
 
     # Download snapshot
     echo "Downloading the latest snapshot......"
