@@ -21,8 +21,8 @@ start_container() {
 
 # Check if the Docker container is running
 if is_container_running; then
-    echo "Docker container $CONTAINER_NAME is already running."
-    echo ""
+    echo "Docker container $CONTAINER_NAME is already running, please stop your container and wait for at least 6 hours then please run this script again."
+    exit 1
 else
     echo "Docker container $CONTAINER_NAME is not running."
     start_container
