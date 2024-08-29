@@ -56,6 +56,6 @@ cp -r ./supra_configs/snapshot/snapshot_*/* ./supra_configs/rpc_store/
 # Start the rpc_node inside the Docker container
 echo ""
 echo "Starting the rpc_node inside the Docker container..."
-docker exec -it $CONTAINER_NAME /supra/rpc_node 
+docker exec -itd $CONTAINER_NAME /supra/rpc_node 
 
 echo "Script execution completed and RPC node is started."
