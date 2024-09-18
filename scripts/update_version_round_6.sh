@@ -21,7 +21,6 @@ echo "Supra container stopped"
 echo "Removing supra container"
 if ! docker rm supra_$ip_address; then
     echo "Failed to remove supra container. Exiting..."
-    exit 1
 fi
 echo "Supra container removed"
 
