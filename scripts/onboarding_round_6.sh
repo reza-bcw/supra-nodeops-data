@@ -906,7 +906,7 @@ EOF
     echo "                                         ✔ Phase 2: Completed Successfully                                       "
     echo ""
     echo "1. Signature file already copied to supra-nodeops-data/release_round6_data/signatures/"
-    echo "2. Please copy it to your forked repo and do git add, commit and push"    
+    echo "2. Please copy $FILENAME to your forked repo and do git add, commit and push"    
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo ""   
