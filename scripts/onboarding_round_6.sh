@@ -1018,7 +1018,7 @@ while true; do
         2)
 
             IP_ADDRESS=$(extract_ip "operator_config.toml")
-            FILE_NAME="$IP_ADDRESS:25000_genesis_signature"
+            FILE_NAME="$IP_ADDRESS:25000_genesis_signature.sig"
             CONFIG_FILE="$BASE_PATH/operator_config.toml"
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
@@ -1096,7 +1096,7 @@ while true; do
         3)
             echo ""
             IP_ADDRESS=$(extract_ip "operator_config.toml") 
-            FILE_NAME="$IP_ADDRESS:25000_genesis_signature"
+            FILE_NAME="$IP_ADDRESS:25000_genesis_signature.sig"
             CONFIG_FILE="$BASE_PATH/operator_config.toml"
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)

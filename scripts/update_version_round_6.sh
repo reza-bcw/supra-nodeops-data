@@ -5,6 +5,9 @@ SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_configs"
 # Parse ip_address from operator_config.toml
 ip_address=$(grep 'ip_address' operator_config.toml | awk -F'=' '{print $2}' | tr -d ' "')
 
+echo "Remove old supra onboarding script"
+rm  "$(pwd)/onboarding_round_6.sh"
+
 # Check if ip_address is set
 if [ -z "$ip_address" ]; then
     echo "IP address not found in config file."
@@ -118,3 +121,5 @@ wget -O $SCRIPT_EXECUTION_LOCATION/ca_certificate.pem https://gist.githubusercon
 wget -O $SCRIPT_EXECUTION_LOCATION/server_supra_certificate.pem https://gist.githubusercontent.com/sjadiya-supra/f39dda12625b7155e4dbf3c8f6bdc891/raw/6b4bdcf8ccd5e348f5f2988ad757199ed88b6197/server_supra_certificate.pem
 wget -O $SCRIPT_EXECUTION_LOCATION/server_supra_key.pem https://gist.githubusercontent.com/sjadiya-supra/e05d37d0cb9e72f806dc965d168c8c41/raw/a5e51ec29ec04f6a7d9e03e0fe08b64fbdfdbb03/server_supra_key.pem
 wget -O $SCRIPT_EXECUTION_LOCATION/genesis_configs.json https://testnet-snapshot.supra.com/configs/genesis_configs.json
+wget -O "$(pwd)/onboarding_round_6.sh" https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/scripts/onboarding_round_6.sh
+chmod +x "$(pwd)/onboarding_round_6.sh"
