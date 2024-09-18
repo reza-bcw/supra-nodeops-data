@@ -29,7 +29,7 @@ echo "Supra container removed"
 
 # Remove the old Docker image
 echo "Deleting old docker image"
-if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc10; then
+if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc14; then
     echo "Failed to delete old Docker image. Exiting..."
 fi
 echo "Deleted the old Docker image"
@@ -103,7 +103,7 @@ if !     docker run --name "supra_$ip_address" \
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
         -e "SUPRA_MAX_LOG_FILES=20" \
         --net=host \
-        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc14; then
+        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc15; then
     echo "Failed to run new Docker image. Exiting..."
     exit 1
 fi
