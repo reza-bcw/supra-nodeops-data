@@ -28,7 +28,6 @@ echo "Supra container removed"
 echo "Deleting old docker image"
 if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc10; then
     echo "Failed to delete old Docker image. Exiting..."
-    exit 1
 fi
 echo "Deleted the old Docker image"
 
