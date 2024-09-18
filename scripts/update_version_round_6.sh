@@ -94,7 +94,7 @@ echo "Running new docker image"
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 
-if !     docker run --name "supra_$ip" \
+if !     docker run --name "supra_$ip_address" \
         -v $SCRIPT_EXECUTION_LOCATION:/supra/configs \
         --user "$USER_ID:$GROUP_ID" \
         -e "SUPRA_HOME=/supra/configs" \
