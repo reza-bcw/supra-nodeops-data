@@ -14,7 +14,6 @@ fi
 echo "Stopping supra container"
 if ! docker stop supra_$ip_address; then
     echo "Failed to stop supra container. Exiting..."
-    exit 1
 fi
 echo "Supra container stopped"
 
