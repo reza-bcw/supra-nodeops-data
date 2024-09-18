@@ -906,7 +906,7 @@ EOF
     echo "                                         ✔ Phase 2: Completed Successfully                                       "
     echo ""
     echo "1. Signature file already copied to supra-nodeops-data/release_round6_data/signatures/"
-    echo "2. Please git add, commit and push"    
+    echo "2. Please copy $FILENAME to your forked repo and do git add, commit and push"    
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo ""   
@@ -1018,7 +1018,7 @@ while true; do
         2)
 
             IP_ADDRESS=$(extract_ip "operator_config.toml")
-            FILE_NAME="$IP_ADDRESS:25000_genesis_signature"
+            FILE_NAME="$IP_ADDRESS:25000_genesis_signature.sig"
             CONFIG_FILE="$BASE_PATH/operator_config.toml"
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
@@ -1096,7 +1096,7 @@ while true; do
         3)
             echo ""
             IP_ADDRESS=$(extract_ip "operator_config.toml") 
-            FILE_NAME="$IP_ADDRESS:25000_genesis_signature"
+            FILE_NAME="$IP_ADDRESS:25000_genesis_signature.sig"
             CONFIG_FILE="$BASE_PATH/operator_config.toml"
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)

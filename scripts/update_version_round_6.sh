@@ -5,6 +5,9 @@ SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_configs"
 # Parse ip_address from operator_config.toml
 ip_address=$(grep 'ip_address' operator_config.toml | awk -F'=' '{print $2}' | tr -d ' "')
 
+echo "Remove old supra onboarding script"
+rm  "$(pwd)/onboarding_round_6.sh"
+
 # Check if ip_address is set
 if [ -z "$ip_address" ]; then
     echo "IP address not found in config file."
@@ -14,7 +17,6 @@ fi
 echo "Stopping supra container"
 if ! docker stop supra_$ip_address; then
     echo "Failed to stop supra container. Exiting..."
-    exit 1
 fi
 echo "Supra container stopped"
 
@@ -22,15 +24,13 @@ echo "Supra container stopped"
 echo "Removing supra container"
 if ! docker rm supra_$ip_address; then
     echo "Failed to remove supra container. Exiting..."
-    exit 1
 fi
 echo "Supra container removed"
 
 # Remove the old Docker image
 echo "Deleting old docker image"
-if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc10; then
+if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc14; then
     echo "Failed to delete old Docker image. Exiting..."
-    exit 1
 fi
 echo "Deleted the old Docker image"
 
@@ -94,7 +94,7 @@ echo "Running new docker image"
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 
-if !     docker run --name "supra_$ip" \
+if !     docker run --name "supra_$ip_address" \
         -v $SCRIPT_EXECUTION_LOCATION:/supra/configs \
         --user "$USER_ID:$GROUP_ID" \
         -e "SUPRA_HOME=/supra/configs" \
@@ -103,7 +103,7 @@ if !     docker run --name "supra_$ip" \
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
         -e "SUPRA_MAX_LOG_FILES=20" \
         --net=host \
-        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc14; then
+        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc15; then
     echo "Failed to run new Docker image. Exiting..."
     exit 1
 fi
@@ -121,3 +121,5 @@ wget -O $SCRIPT_EXECUTION_LOCATION/ca_certificate.pem https://gist.githubusercon
 wget -O $SCRIPT_EXECUTION_LOCATION/server_supra_certificate.pem https://gist.githubusercontent.com/sjadiya-supra/f39dda12625b7155e4dbf3c8f6bdc891/raw/6b4bdcf8ccd5e348f5f2988ad757199ed88b6197/server_supra_certificate.pem
 wget -O $SCRIPT_EXECUTION_LOCATION/server_supra_key.pem https://gist.githubusercontent.com/sjadiya-supra/e05d37d0cb9e72f806dc965d168c8c41/raw/a5e51ec29ec04f6a7d9e03e0fe08b64fbdfdbb03/server_supra_key.pem
 wget -O $SCRIPT_EXECUTION_LOCATION/genesis_configs.json https://testnet-snapshot.supra.com/configs/genesis_configs.json
+wget -O "$(pwd)/onboarding_round_6.sh" https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/scripts/onboarding_round_6.sh
+chmod +x "$(pwd)/onboarding_round_6.sh"
