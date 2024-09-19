@@ -28,11 +28,15 @@ fi
 echo "Supra container removed"
 
 # Remove the old Docker image
-echo "Deleting old docker image"
+echo "Deleting old docker images"
+if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc10; then
+    echo "Failed to delete old Docker image. Exiting..."
+fi
+
 if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v6.0.0.rc14; then
     echo "Failed to delete old Docker image. Exiting..."
 fi
-echo "Deleted the old Docker image"
+echo "Deleted the old Docker images"
 
 # Check if smr_settings.toml exists before creating a new one
 echo "Changing the smr settings file"
