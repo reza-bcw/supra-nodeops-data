@@ -997,7 +997,7 @@ phase3_fresh_start() {
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo "                                         ✔ Phase 3: Completed                                                    "
-    echo ""  
+    echo ""  Genesis.blob file is stored at $SCRIPT_EXECUTION_LOCATION/genesis.blob
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo ""   
