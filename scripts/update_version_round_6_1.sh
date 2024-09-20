@@ -44,7 +44,7 @@ if !     docker run --name "supra_$ip_address" \
         --user "$USER_ID:$GROUP_ID" \
         -e "SUPRA_HOME=/supra/configs" \
         -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
-        -e "SUPRA_MAX_LOG_FILE_SIZE=4000000" \
+        -e "SUPRA_MAX_LOG_FILE_SIZE=400000000" \
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
         -e "SUPRA_MAX_LOG_FILES=20" \
         --net=host \
