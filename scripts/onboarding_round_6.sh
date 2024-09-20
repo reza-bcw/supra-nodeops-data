@@ -1014,8 +1014,8 @@ start_supra_node() {
         # Prompt for either IP address or DNS name
         while true; do
             echo "Please select the appropriate option to start the node:"
-            echo "1. Within 4 hour window of node start"
-            echo "2. After 4 hour using snapshot"
+            echo "1. Start your node within 4 hour window of network start"
+            echo "2. Start your node after 4 hour window of the netowork start using snapshot"
             read -p "Enter your choice (1 or 2): " choice
 
             case $choice in
