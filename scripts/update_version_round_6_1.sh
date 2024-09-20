@@ -4,6 +4,8 @@ SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_configs"
 # Parse ip_address from operator_config.toml
 ip_address=$(grep 'ip_address' operator_config.toml | awk -F'=' '{print $2}' | tr -d ' "')
 
+export api_key=AIzaSyD2Byf2_yWYngvHnv6Ib7V6C2EpHY3LL0E 
+
 echo "Remove old supra onboarding script"
 rm  "$(pwd)/onboarding_round_6.sh"
 
