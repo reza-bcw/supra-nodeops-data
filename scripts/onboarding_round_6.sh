@@ -31,7 +31,8 @@ display_questions() {
     echo "2. Select Phase II - Perform Signing Operation"
     echo "3. Select Phase III - Create Genesis Blob"
     echo "4. Select Phase IV - Start the node and other services"
-    echo "5. Exit"
+    echo "5. Select Phase V - Restart the network using snapshot"
+    echo "6. Exit"
 }
 
 
@@ -937,6 +938,45 @@ zip_and_clean_phase_3_files() {
   fi
 }
 
+start_node(){
+    ip_address=$(extract_ip "operator_config.toml")
+    encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
+    password=$(echo "$encoded_pswd" | openssl base64 -d -A)
+
+    expect << EOF
+        spawn docker exec -it supra_$ip_address /supra/supra node smr run
+        expect "password:" { send "$password\r" }
+        expect eof
+EOF
+}
+
+snapshot_download(){
+if ! command -v unzip &> /dev/null; then
+    if [ -f /etc/apt/sources.list ]; then
+        package_manager="sudo apt install"
+        $package_manager -y unzip
+    elif [ -f /etc/yum.repos.d/ ]; then
+        package_manager="sudo yum install"
+        $package_manager -y unzip
+    else
+        echo "**WARNING: Could not identify package manager. Please install unzip manually."
+        exit 1
+    fi
+else
+    echo ""
+fi 
+rm -rf $SCRIPT_EXECUTION_LOCATION/ledger_storage $SCRIPT_EXECUTION_LOCATION/smr_storage/* $SCRIPT_EXECUTION_LOCATION/supra_node_logs
+
+# Download snapshot 
+echo "Downloading the latest snapshot......"
+wget -O $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip https://testnet-snapshot.supra.com/snapshots/latest_snapshot.zip
+
+# Unzip snapshot 
+unzip $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip -d $SCRIPT_EXECUTION_LOCATION/
+
+# Copy snapshot into smr_database
+cp $SCRIPT_EXECUTION_LOCATION/snapshot/snapshot_*/store/* $SCRIPT_EXECUTION_LOCATION/smr_storage/
+}
 
 phase3_fresh_start() {
 
@@ -970,11 +1010,35 @@ start_supra_node() {
 
     # Check if container is running
     if docker ps --filter "name=supra_$ip_address" --format '{{.Names}}' | grep -q supra_$ip_address; then
-        expect << EOF
-        spawn docker exec -it supra_$ip_address /supra/supra node smr run
-        expect "password:" { send "$password\r" }
-        expect eof
-EOF
+
+        # Prompt for either IP address or DNS name
+        while true; do
+            echo "Please select the appropriate option to start the node:"
+            echo "1. Within 4 hour window of node start"
+            echo "2. After 4 hour using snapshot"
+            read -p "Enter your choice (1 or 2): " choice
+
+            case $choice in
+                1)
+                    # Prompt for IP address
+                    while true; do
+                        start_node
+                    done
+                    break
+                    ;;
+                2)
+                    # Prompt for DNS name
+                    while true; do
+                        snapshot_download
+                        start_node
+                    done
+                    break
+                    ;;
+                *)
+                    echo "Invalid choice. Please select 1 for node without snapshot or 2 using the snapshot."
+                    ;;
+            esac
+        done
     else
         echo "Your container supra_$ip_address is not running."
     fi
@@ -1210,6 +1274,13 @@ while true; do
             start_supra_node "$decoded_password" "$IP_ADDRESS"
             ;;
         5)
+            echo "Restart the node using snapshot"
+            while true; do
+                snapshot_download
+                start_node
+            done
+            ;;
+        6)
             echo "Exit the script"
             exit 0
             ;;
