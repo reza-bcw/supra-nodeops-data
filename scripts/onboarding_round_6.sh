@@ -1023,6 +1023,7 @@ start_supra_node() {
                     # Prompt for IP address
                     while true; do
                         start_node
+                        break
                     done
                     break
                     ;;
@@ -1031,6 +1032,7 @@ start_supra_node() {
                     while true; do
                         snapshot_download
                         start_node
+                        break
                     done
                     break
                     ;;
@@ -1278,6 +1280,7 @@ while true; do
             while true; do
                 snapshot_download
                 start_node
+                break
             done
             ;;
         6)
