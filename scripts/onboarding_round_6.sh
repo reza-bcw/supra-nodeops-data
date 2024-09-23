@@ -1261,13 +1261,13 @@ while true; do
             read -p "Enter your system type: " prompt_user
 
             if [ "$prompt_user" = "1" ]; then
-                wget "$GRAFANA"
+                wget -O nodeops-monitoring-telegraf.sh "$GRAFANA"
                 chmod +x nodeops-monitoring-telegraf.sh
-                sudo ./nodeops-monitoring-telegraf.sh
+                sudo -E ./nodeops-monitoring-telegraf.sh
             elif [ "$prompt_user" = "2" ]; then
-                wget "$GRAFANA_CENTOS"
+                wget -O nodeops-monitoring-telegraf-centos.sh "$GRAFANA_CENTOS"
                 chmod +x nodeops-monitoring-telegraf-centos.sh
-                sudo ./nodeops-monitoring-telegraf-centos.sh
+                sudo -E ./nodeops-monitoring-telegraf-centos.sh
             else
                 echo "Invalid option selected. Please enter 1 for Ubuntu/Debian Linux or 2 for Amazon Linux/Centos Linux."
             fi
