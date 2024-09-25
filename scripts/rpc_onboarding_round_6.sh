@@ -169,7 +169,7 @@ function create_supra_container() {
 
     docker run --name "supra_rpc_$IP_ADDRESS" \
         -v $SCRIPT_EXECUTION_LOCATION:/supra/configs \
-        --user "$user_ID:$GROUP_ID"\
+        --user "${USER_ID}:${GROUP_ID}"\
         -e "SUPRA_HOME=/supra/configs" \
         -e "SUPRA_LOG_DIR=/supra/configs/rpc_node_logs" \
         -e "SUPRA_MAX_LOG_FILE_SIZE=400000000" \
