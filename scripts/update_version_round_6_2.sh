@@ -60,5 +60,7 @@ if !     docker run --name "supra_$ip_address" \
 fi
 echo "New Docker image created"
 
+rm -rf $SCRIPT_EXECUTION_LOCATION/genesis.blob
+wget -o "$SCRIPT_EXECUTION_LOCATION/genesis.blob" https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/scripts/genesis.blob
 wget -O "$(pwd)/onboarding_round_6.sh" https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/scripts/onboarding_round_6.sh
 chmod +x "$(pwd)/onboarding_round_6.sh"
