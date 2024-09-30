@@ -343,8 +343,73 @@ download_snapshot() {
     cp $SCRIPT_EXECUTION_LOCATION/snapshot/snapshot_*/archive/* $SCRIPT_EXECUTION_LOCATION/rpc_archive/
 }
 
+start_rpc_node(){
+IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
+echo "Starting the RPC node......."
+
+/usr/bin/expect <<EOF
+spawn docker exec -it supra_rpc_$IP_ADDRESS /supra/rpc_node
+expect "Starting logger runtime"
+send "\r"
+expect eof
+EOF
+}
+
+start_supra_container(){
+IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
+echo "Starting supra rpc container"
+docker start supra_rpc_$IP_ADDRESS
+exit 1
+}
+
+stop_supra_container(){
+IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
+echo "Stopping supra rpc container"
+if ! docker stop supra_rpc_$IP_ADDRESS; then
+    echo "Failed to stop supra container. Exiting..."
+    exit 1
+fi
+}
+
 start_supra_rpc_node() {
+
     IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
+
+    # Check if container is running
+    if docker ps --filter "name=supra_rpc_$IP_ADDRESS" --format '{{.Names}}' | grep -q supra_rpc_$IP_ADDRESS; then
+
+        # Prompt for either IP address or DNS name
+        while true; do
+            echo "Please select the appropriate option to start the rpc node:"
+            echo "1. Start your rpc node within 4 hour window of network start"
+            echo "2. Start your rpc node after 4 hour window of the network start using snapshot"
+            read -p "Enter your choice (1 or 2): " choice
+
+            case $choice in
+                1)
+                    while true; do
+                        start_rpc_node
+                        break
+                    done
+                    break
+                    ;;
+                2)
+                    while true; do
+                    
+                        download_snapshot
+                        start_rpc_node
+                        break
+                    done
+                    break
+                    ;;
+                *)
+                    echo "Invalid choice. Please select 1 for node without snapshot or 2 using the snapshot."
+                    ;;
+            esac
+        done
+    else
+        echo "Your container supra_$ip_address is not running."
+    fi
 
     echo "Starting the RPC node......."
 
@@ -397,7 +462,9 @@ while true; do
             start_supra_rpc_node
             ;;
         3)
+            stop_supra_container
             download_snapshot
+            start_supra_container
             start_supra_rpc_node
             ;;
         4)
