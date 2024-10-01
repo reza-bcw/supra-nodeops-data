@@ -316,9 +316,9 @@ EOF
     wget -O $SCRIPT_EXECUTION_LOCATION/ca_certificate.pem https://testnet-snapshot.supra.com/certs/ca_certificate.pem
     wget -O $SCRIPT_EXECUTION_LOCATION/client_supra_certificate.pem https://testnet-snapshot.supra.com/certs/client_supra_certificate.pem
     wget -O $SCRIPT_EXECUTION_LOCATION/client_supra_key.pem https://testnet-snapshot.supra.com/certs/client_supra_key.pem
-    wget -O $SCRIPT_EXECUTION_LOCATION/genesis.blob https://testnet-snapshot.supra.com/configs/genesis.blob
+    wget -O $SCRIPT_EXECUTION_LOCATION/genesis_blob.zip https://testnet-snapshot.supra.com/configs/genesis_blob.zip
     wget -O $SCRIPT_EXECUTION_LOCATION/supra_committees.json https://testnet-snapshot.supra.com/configs/supra_committees.json
-
+    
     docker cp supra_rpc_configs/genesis.blob supra_rpc_$IP_ADDRESS:/supra/
 }
 
@@ -341,6 +341,9 @@ download_snapshot() {
     # Copy snapshot into smr_database
     cp $SCRIPT_EXECUTION_LOCATION/snapshot/snapshot_*/store/* $SCRIPT_EXECUTION_LOCATION/rpc_store/
     cp $SCRIPT_EXECUTION_LOCATION/snapshot/snapshot_*/archive/* $SCRIPT_EXECUTION_LOCATION/rpc_archive/
+    wget -O $SCRIPT_EXECUTION_LOCATION/genesis_blob.zip https://testnet-snapshot.supra.com/configs/genesis_blob.zip
+    unzip $SCRIPT_EXECUTION_LOCATION/genesis_blob.zip -d $SCRIPT_EXECUTION_LOCATION/
+    cp $SCRIPT_EXECUTION_LOCATION/genesis_blob/genesis.blob $SCRIPT_EXECUTION_LOCATION/
 }
 
 start_rpc_node(){
@@ -358,7 +361,15 @@ EOF
 start_supra_container(){
     IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
     echo "Starting supra rpc container"
-    docker start supra_rpc_$IP_ADDRESS
+    if ! docker start supra_rpc_$IP_ADDRESS; then
+        echo "Failed to start the container."
+    else
+        docker cp "$SCRIPT_EXECUTION_LOCATION/config.toml" supra_rpc_$ip_address:/supra/
+        rm "$SCRIPT_EXECUTION_LOCATION/genesis_blob.zip"
+        rm -rf "$SCRIPT_EXECUTION_LOCATION/genesis_blob"
+        echo "Started the RPC Node container."
+    fi
+
 }
 
 stop_supra_container(){

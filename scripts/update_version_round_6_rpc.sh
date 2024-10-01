@@ -56,9 +56,6 @@ if !     docker run --name "supra_rpc_$ip_address" \
 fi
 echo "New Docker image created"
 rm -rf $SCRIPT_EXECUTION_LOCATION/genesis.blob
-# wget -o "$SCRIPT_EXECUTION_LOCATION/genesis.blob" https://testnet-snapshot.supra.com/configs/genesis.blob
-
-docker cp "$SCRIPT_EXECUTION_LOCATION/config.toml" supra_rpc_$ip_address:/supra/
 
 wget -O "$(pwd)/rpc_onboarding_round_6.sh" https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/scripts/rpc_onboarding_round_6.sh
 chmod +x "$(pwd)/rpc_onboarding_round_6.sh"

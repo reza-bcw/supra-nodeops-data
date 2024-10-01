@@ -953,8 +953,14 @@ grafana_options(){
 start_supra_container(){
 ip_address=$(grep 'ip_address' operator_config.toml | awk -F'=' '{print $2}' | tr -d ' "')
 echo "Starting supra container"
-docker start supra_$ip_address
-exit 1
+    if ! docker start supra_$ip_address; then
+        echo "Failed starting the Validator node container"
+        exit 1
+    else
+        rm "$SCRIPT_EXECUTION_LOCATION/genesis_blob.zip"
+        rm -rf "$SCRIPT_EXECUTION_LOCATION/genesis_blob"
+        echo "Started the Validator Node container."
+    fi
 }
 
 stop_supra_container(){
@@ -962,7 +968,6 @@ ip_address=$(grep 'ip_address' operator_config.toml | awk -F'=' '{print $2}' | t
 echo "Stopping supra container"
 if ! docker stop supra_$ip_address; then
     echo "Failed to stop supra container. Exiting..."
-    exit 1
 fi
 }
 
@@ -992,6 +997,9 @@ unzip $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip -d $SCRIPT_EXECUTION_LOCATI
 
 # Copy snapshot into smr_database
 cp $SCRIPT_EXECUTION_LOCATION/snapshot/snapshot_*/store/* $SCRIPT_EXECUTION_LOCATION/smr_storage/
+wget -O $SCRIPT_EXECUTION_LOCATION/genesis_blob.zip https://testnet-snapshot.supra.com/configs/genesis_blob.zip
+unzip $SCRIPT_EXECUTION_LOCATION/genesis_blob.zip -d $SCRIPT_EXECUTION_LOCATION/
+cp $SCRIPT_EXECUTION_LOCATION/genesis_blob/genesis.blob $SCRIPT_EXECUTION_LOCATION/
 }
 
 phase3_fresh_start() {
