@@ -408,7 +408,7 @@ start_supra_rpc_node() {
             esac
         done
     else
-        echo "Your container supra_$ip_address is not running."
+        echo "Your container supra_rpc_$ip_address is not running."
     fi
 
     echo "Starting the RPC node......."
