@@ -465,7 +465,7 @@ while true; do
             stop_supra_container
             download_snapshot
             start_supra_container
-            start_supra_rpc_node
+            start_rpc_node
             ;;
         4)
             echo "Exit the script"
