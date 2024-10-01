@@ -356,10 +356,9 @@ EOF
 }
 
 start_supra_container(){
-IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
-echo "Starting supra rpc container"
-docker start supra_rpc_$IP_ADDRESS
-exit 1
+    IP_ADDRESS=$(extract_ip "operator_rpc_config.toml")
+    echo "Starting supra rpc container"
+    docker start supra_rpc_$IP_ADDRESS
 }
 
 stop_supra_container(){
