@@ -34,7 +34,7 @@ def Create_Docker_Container():
         "-v", "./supra_configs:/supra/configs",
         "-e", "SUPRA_HOME=/supra/configs",
         "--net=host",
-        "-itd", "asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v6.0.0.rc7"
+        "-itd", "asia-docker.pkg.dev/supra-devnet-misc/smr-moonshot-devnet/validator-node:v6.3.0"
     ]
     
     try:
