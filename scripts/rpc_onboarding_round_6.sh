@@ -364,7 +364,7 @@ start_supra_container(){
     if ! docker start supra_rpc_$IP_ADDRESS; then
         echo "Failed to start the container."
     else
-        docker cp "$SCRIPT_EXECUTION_LOCATION/config.toml" supra_rpc_$ip_address:/supra/
+        docker cp "$SCRIPT_EXECUTION_LOCATION/config.toml" supra_rpc_$IP_ADDRESS:/supra/
         rm "$SCRIPT_EXECUTION_LOCATION/genesis_blob.zip"
         rm -rf "$SCRIPT_EXECUTION_LOCATION/genesis_blob"
         echo "Started the RPC Node container."
