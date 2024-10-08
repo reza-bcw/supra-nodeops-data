@@ -1,6 +1,6 @@
 # Supra-nodeops-data
 ##  Please follow below folder structure.
-    release_round6_data/
+    release_round7_data/
         operators/
             nodename1_ip/
             -> smr_public_key.json
