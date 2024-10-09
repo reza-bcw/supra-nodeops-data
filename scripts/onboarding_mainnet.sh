@@ -392,7 +392,7 @@ EOF
     fi
 }
 
-function generate_validator_identity() {
+function generate_validator_identity_ip() {
     echo " "
     echo "Generating validator identity"
     echo " " 
@@ -410,7 +410,24 @@ function generate_validator_identity() {
         expect "password:" { send "$decoded_pswd\r" }
         expect eof
 EOF
-    elif [ -n "$dns_name" ]; then
+    else
+        echo 'No valid IP address or DNS name provided.'
+        exit 1
+    fi
+    cd - > /dev/null
+}
+
+function generate_validator_identity_dns(){
+        echo " "
+    echo "Generating validator identity"
+    echo " " 
+
+    ip_address=$(extract_ip "operator_config_mainnet.toml")
+    local dns_name="$1"
+    encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
+    decoded_pswd=$(echo "$encoded_pswd" | openssl base64 -d -A)
+
+    if [ -n "$dns_name" ]; then
     expect << EOF
         spawn docker exec -it supra_mainnet_$ip_address /supra/supra key generate-validator-identity -d $dns_name:28000
         expect "password:" { send "$decoded_pswd\r" }
@@ -780,7 +797,7 @@ function automated_validator_node_setup_and_configuration() {
                     IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml") 
                     if [[ $IP_ADDRESS =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
                         DNS_NAME=""  # Reset DNS if the user chooses IP
-                        generate_validator_identity "$DNS_NAME"
+                        generate_validator_identity_ip "$DNS_NAME"
 
                         break
                     else
@@ -797,7 +814,7 @@ function automated_validator_node_setup_and_configuration() {
                         echo "DNS name cannot be empty. Please enter a valid DNS name."
                     else
                         IP_ADDRESS=""  # Reset IP if the user chooses DNS
-                        generate_validator_identity
+                        generate_validator_identity_dns "$DNS_NAME"
                         break
                     fi
                 done
