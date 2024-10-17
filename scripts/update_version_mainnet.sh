@@ -73,7 +73,7 @@ genesis_timestamp_microseconds = 1728518400000000
 max_batch_delay_ms = 500
 # The maximum size of a batch. If max_batch_size_bytes is reached before max_batch_delay_ms
 # then a batch will be proposed immediately.
-max_batch_size_bytes = 5_000_000
+max_batch_size_bytes = 5000000
 # The amount of time that a node will wait before repeating a sync request for a batch that it
 # is missing.
 sync_retry_delay_ms = 2000
@@ -122,10 +122,10 @@ allow_new_validators = false
 # stake-weighted voting, so this value does not impact our decentralization quotient. This
 # may change in the future. Initially set to 100_000_000_000 SUPRA; i.e., the total supply.
 # Measured in Quants (1 Quant = 10^-8 SUPRA).
-max_stake = 10_000_000_000_000_000_000
+max_stake = 10000000000000000000
 # The minimum stake required to run a Supra Validator. 55_000_000 SUPRA.
 # Measured in Quants (1 Quant = 10^-8 SUPRA).
-min_stake = 5_500_000_000_000_000
+min_stake = 5500000000000000
 # The number of tokens initially allocated to node operators. Tokens will be earned through block
 # rewards.
 operator_account_balance = 0
@@ -165,7 +165,7 @@ resume = true
 root_ca_cert_path = "configs/ca_certificate.pem"
 # The port on which to listen for connections from the associated RPC node. Each validator
 # may serve at most one RPC node.
-rpc_access_port = 26000
+rpc_access_port = 29000
 # The path to the TLS certificate for this node.
 server_cert_path = "configs/server_supra_certificate.pem"
 # The path to the private key to be used when negotiating TLS connections.
@@ -174,7 +174,7 @@ server_private_key_path = "configs/server_supra_key.pem"
 # Parameters for the blockchain database.
 [node.database_setup.dbs.chain_store.rocks_db]
 # The path at which the database should be created.
-path = "smr_storage"
+path = "configs/smr_storage"
 # Whether the database should be pruned. If true, data that is more than epochs_to_retain
 # old will be deleted.
 enable_pruning = true
@@ -182,7 +182,7 @@ enable_pruning = true
 # Parameters for the DKG database.
 [node.database_setup.dbs.ledger.rocks_db]
 # The path at which the database should be created.
-path = "ledger_storage"
+path = "configs/ledger_storage"
 
 # Parameters related to database pruning.
 [node.database_setup.prune_config]
@@ -206,7 +206,7 @@ if !     docker run --name "supra_mainnet_$ip_address" \
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
         -e "SUPRA_MAX_LOG_FILES=20" \
         --net=host \
-        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-mainnet/validator-node:v7.0.0; then
+        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-mainnet/validator-node:v7.1.0; then
     echo "Failed to run new Docker image. Exiting..."
     exit 1
 fi
