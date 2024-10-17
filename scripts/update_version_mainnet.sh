@@ -122,7 +122,7 @@ allow_new_validators = false
 # stake-weighted voting, so this value does not impact our decentralization quotient. This
 # may change in the future. Initially set to 100_000_000_000 SUPRA; i.e., the total supply.
 # Measured in Quants (1 Quant = 10^-8 SUPRA).
-max_stake = 10000000000000000000
+max_stake = "10000000000000000000"
 # The minimum stake required to run a Supra Validator. 55_000_000 SUPRA.
 # Measured in Quants (1 Quant = 10^-8 SUPRA).
 min_stake = 5500000000000000
