@@ -11,9 +11,9 @@ GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitor
 GRAFANA_CENTOS="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf-centos.sh"
 
 create_folder_and_files() {
-    touch operator_config_mainnet.toml
-    if [ ! -d "supra_configs_mainnet" ]; then
-        mkdir supra_configs_mainnet
+    touch $CONFIG_FILE
+    if [ ! -d "$SCRIPT_EXECUTION_LOCATION" ]; then
+        mkdir $SCRIPT_EXECUTION_LOCATION
     else
         echo ""
     fi
@@ -52,7 +52,7 @@ check_prerequisites() {
     if ! command -v docker &>/dev/null; then
         echo "Docker is not installed. Please install Docker before proceeding."
         echo "Terminating Script"
-        echo " "
+        echo ""
         exit 1
     fi 
 
@@ -72,25 +72,28 @@ check_prerequisites() {
     # Check if toml-cli is installed
     if ! command -v toml &> /dev/null; then
         echo "toml-cli could not be found. Please install it to proceed."
-        echo "command : cargo install toml-cli"
+        echo "Command : cargo install toml-cli"
         exit 1
     fi 
 
     # Check if sha256sum is installed
     if ! command -v sha256sum &> /dev/null; then
         echo "sha256sum is not installed."
+        echo "Command : sudo apt install coreutils"
         exit 1
     fi
 
     # Check if openssl is installed
     if ! command -v openssl &> /dev/null; then
         echo "openssl is not installed."
+        echo "Command : sudo apt install openssl"
         exit 1
     fi
 
     # Check if zip is installed
     if ! command -v zip &> /dev/null; then
         echo "zip is not installed, please install zip manually."
+        echo "Command : sudo apt install zip"
         exit 1
     fi
 
@@ -1366,7 +1369,7 @@ while true; do
             exit 0
             ;;
         *)
-            echo "Invalid choice. Please enter a number between 1 and 5."
+            echo "Invalid choice. Please enter a number between 1 and 7."
             ;;
 
     esac
