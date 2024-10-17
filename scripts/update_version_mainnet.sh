@@ -206,7 +206,7 @@ if !     docker run --name "supra_mainnet_$ip_address" \
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
         -e "SUPRA_MAX_LOG_FILES=20" \
         --net=host \
-        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-mainnet/validator-node:v7.1.0; then
+        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-mainnet/validator-node:v7.1.2; then
     echo "Failed to run new Docker image. Exiting..."
     exit 1
 fi
@@ -223,6 +223,7 @@ echo "Updated smr_settings.toml hash"
 wget -O $SCRIPT_EXECUTION_LOCATION/ca_certificate.pem https://gist.githubusercontent.com/sjadiya-supra/a25596f90a24ff5c4e2b3ebe9cfb57df/raw/5910a4322c90fd9f13ca804c316fcda7221d94ac/ca_certificate.pem
 wget -O $SCRIPT_EXECUTION_LOCATION/server_supra_certificate.pem https://gist.githubusercontent.com/sjadiya-supra/f39dda12625b7155e4dbf3c8f6bdc891/raw/6b4bdcf8ccd5e348f5f2988ad757199ed88b6197/server_supra_certificate.pem
 wget -O $SCRIPT_EXECUTION_LOCATION/server_supra_key.pem https://gist.githubusercontent.com/sjadiya-supra/e05d37d0cb9e72f806dc965d168c8c41/raw/a5e51ec29ec04f6a7d9e03e0fe08b64fbdfdbb03/server_supra_key.pem
-wget -O $SCRIPT_EXECUTION_LOCATION/genesis_configs.json https://testnet-snapshot.supra.com/configs/genesis_configs.json
+wget -O $SCRIPT_EXECUTION_LOCATION/genesis_configs.json https://mainnet-data.supra.com/configs/genesis_configs.json
+wget -O $SCRIPT_EXECUTION_LOCATION/genesis_config_arbitrary_data.json https://mainnet-data.supra.com/configs/genesis_config_arbitrary_data.json
 wget -O "$(pwd)/onboarding_mainnet.sh" https://raw.githubusercontent.com/Entropy-Foundation/supra-nodeops-data/refs/heads/master/scripts/onboarding_mainnet.sh
 chmod +x "$(pwd)/onboarding_mainnet.sh"
