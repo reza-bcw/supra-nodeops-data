@@ -1183,7 +1183,7 @@ while true; do
         2)
 
             IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml")
-            dns_name=$(parse_toml "address.Dns" "$SCRIPT_EXECUTION_LOCATION/validator_public_identity.toml")
+            dns_name=$(parse_toml "address.Dns.name" "$SCRIPT_EXECUTION_LOCATION/validator_public_identity.toml")
             FILE_NAME="${dns_name}_genesis_signature.sig"
             CONFIG_FILE="$BASE_PATH/operator_config_mainnet.toml"
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
