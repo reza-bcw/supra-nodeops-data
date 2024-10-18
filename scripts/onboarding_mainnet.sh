@@ -997,7 +997,7 @@ get_dns_or_socketaddr() {
     
     # If dns_name is empty, fallback to [address] (SocketAddr with IP and Port)
     if [[ -z "$dns_name" ]]; then
-        dns_name=$(grep -E '^SocketAddr\s*=' "$toml_file" | awk -F'[":]' '{gsub(/ /, "", $2":"$3); print $2":"$3}')
+        dns_name=$(grep -E '^SocketAddr\s*=' "$toml_file" | awk -F'[":]' '{ip_port=$2":"$3; gsub(/ /, "", ip_port); print ip_port}')
     fi
 
     echo "$dns_name"
