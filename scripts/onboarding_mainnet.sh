@@ -392,7 +392,7 @@ EOF
     fi
 }
 
-function generate_validator_identity() {
+function generate_validator_identity_ip() {
     echo " "
     echo "Generating validator identity"
     echo " " 
@@ -410,7 +410,24 @@ function generate_validator_identity() {
         expect "password:" { send "$decoded_pswd\r" }
         expect eof
 EOF
-    elif [ -n "$dns_name" ]; then
+    else
+        echo 'No valid IP address or DNS name provided.'
+        exit 1
+    fi
+    cd - > /dev/null
+}
+
+function generate_validator_identity_dns(){
+        echo " "
+    echo "Generating validator identity"
+    echo " " 
+
+    ip_address=$(extract_ip "operator_config_mainnet.toml")
+    local dns_name="$1"
+    encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
+    decoded_pswd=$(echo "$encoded_pswd" | openssl base64 -d -A)
+
+    if [ -n "$dns_name" ]; then
     expect << EOF
         spawn docker exec -it supra_mainnet_$ip_address /supra/supra key generate-validator-identity -d $dns_name:28000
         expect "password:" { send "$decoded_pswd\r" }
@@ -780,7 +797,7 @@ function automated_validator_node_setup_and_configuration() {
                     IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml") 
                     if [[ $IP_ADDRESS =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
                         DNS_NAME=""  # Reset DNS if the user chooses IP
-                        generate_validator_identity "$DNS_NAME"
+                        generate_validator_identity_ip "$DNS_NAME"
 
                         break
                     else
@@ -797,7 +814,7 @@ function automated_validator_node_setup_and_configuration() {
                         echo "DNS name cannot be empty. Please enter a valid DNS name."
                     else
                         IP_ADDRESS=""  # Reset IP if the user chooses DNS
-                        generate_validator_identity
+                        generate_validator_identity_dns "$DNS_NAME"
                         break
                     fi
                 done
@@ -972,7 +989,37 @@ if ! docker stop supra_mainnet_$ip_address; then
     echo "Failed to stop supra container. Exiting..."
 fi
 }
+get_dns_or_socketaddr() {
+    local toml_file="$1"
 
+    # Try extracting from [address.Dns] (dns_name)
+    local dns_name=$(grep -E '^name\s*=' "$toml_file" | awk -F'=' '{gsub(/[" ]/, "", $2); print $2}')
+    
+    # If dns_name is empty, fallback to [address] (SocketAddr with IP and Port)
+    if [[ -z "$dns_name" ]]; then
+        dns_name=$(grep -E '^SocketAddr\s*=' "$toml_file" | awk -F'[":]' '{ip_port=$2":"$3; gsub(/ /, "", ip_port); print ip_port}')
+    fi
+
+    echo "$dns_name"
+}
+setup_file_name() {
+    local validator_file="$SCRIPT_EXECUTION_LOCATION/validator_public_identity.toml"
+
+    if [[ -f "$validator_file" ]]; then
+        # Get the dns_name or socket address
+        local dns_name=$(get_dns_or_socketaddr "$validator_file")
+        if [[ -n "$dns_name" ]]; then
+            FILE_NAME="${dns_name}_genesis_signature.sig"
+            echo "✔ FILE_NAME set to: $FILE_NAME"
+        else
+            echo "Error: Could not extract name or address from $validator_file"
+            exit 1
+        fi
+    else
+        echo "Error: $validator_file does not exist."
+        exit 1
+    fi
+}
 snapshot_download(){
 if ! command -v unzip &> /dev/null; then
     if [ -f /etc/apt/sources.list ]; then
@@ -1163,7 +1210,9 @@ while true; do
         2)
 
             IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml")
-            FILE_NAME="$IP_ADDRESS:28000_genesis_signature.sig"
+            dns_name=$(parse_toml "address.Dns.name" "$SCRIPT_EXECUTION_LOCATION/validator_public_identity.toml")
+            setup_file_name
+            echo "File NAME is set to : $FILE_NAME"
             CONFIG_FILE="$BASE_PATH/operator_config_mainnet.toml"
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
@@ -1235,7 +1284,7 @@ while true; do
         3)
             echo ""
             IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml") 
-            FILE_NAME="$IP_ADDRESS:28000_genesis_signature.sig"
+            setup_file_name
             CONFIG_FILE="$BASE_PATH/operator_config_mainnet.toml"
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
