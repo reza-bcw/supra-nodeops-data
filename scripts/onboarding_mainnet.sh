@@ -909,7 +909,7 @@ zip_and_clean_phase_3_files() {
     fi
 
     zip -r "$ZIP_FILE" "$BLOB_FILE"
-    sudo rm -rf "$FILE_TO_REMOVE_1" "$FILE_TO_REMOVE_2" "$FILE_TO_REMOVE_3"
+    rm -rf "$FILE_TO_REMOVE_1" "$FILE_TO_REMOVE_2" "$FILE_TO_REMOVE_3"
 
   fi
 }
@@ -980,8 +980,6 @@ echo "Starting supra container"
         echo "Failed starting the Validator node container"
         exit 1
     else
-        rm "$SCRIPT_EXECUTION_LOCATION/genesis_blob.zip"
-        rm -rf "$SCRIPT_EXECUTION_LOCATION/genesis_blob"
         echo "Started the Validator Node container."
     fi
 }
