@@ -41,7 +41,7 @@ if !     docker run --name "supra_mainnet_$ip_address" \
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
         -e "SUPRA_MAX_LOG_FILES=20" \
         --net=host \
-        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-mainnet/validator-node:v7.0.0; then
+        -itd asia-docker.pkg.dev/supra-devnet-misc/supra-mainnet/validator-node:v7.1.2; then
     echo "Failed to run new Docker image. Exiting..."
     exit 1
 fi
