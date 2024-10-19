@@ -26,7 +26,7 @@ if ! docker rm supra_mainnet_$ip_address; then
     echo "Failed to remove supra container. Exiting..."
 fi
 echo "Supra container removed"
-cho "Deleting old docker images"
+echo "Deleting old docker images"
 if ! docker rmi asia-docker.pkg.dev/supra-devnet-misc/supra-testnet/validator-node:v7.0.0; then
     echo "Failed to delete old Docker image. Exiting..."
 fi
