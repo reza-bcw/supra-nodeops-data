@@ -1046,7 +1046,7 @@ wget -O $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip https://mainnet-data.supr
 # Unzip snapshot 
 unzip $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip -d $SCRIPT_EXECUTION_LOCATION/
 
-mksir -p $SCRIPT_EXECUTION_LOCATION/smr_storage/
+mkdir -p $SCRIPT_EXECUTION_LOCATION/smr_storage/
 
 # Copy snapshot into smr_database
 cp $SCRIPT_EXECUTION_LOCATION/snapshot/snapshot_*/store/* $SCRIPT_EXECUTION_LOCATION/smr_storage/
