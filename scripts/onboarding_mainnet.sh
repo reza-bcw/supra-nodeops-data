@@ -1013,7 +1013,7 @@ rm -rf $SCRIPT_EXECUTION_LOCATION/ledger_storage $SCRIPT_EXECUTION_LOCATION/smr_
 
 # Download snapshot 
 echo "Downloading the latest snapshot......"
-wget -O $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip https://testnet-snapshot.supra.com/snapshots/latest_snapshot.zip
+wget -O $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip https://mainnet-data.supra.com/snapshots/latest_snapshot.zip
 
 # Unzip snapshot 
 unzip $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip -d $SCRIPT_EXECUTION_LOCATION/
