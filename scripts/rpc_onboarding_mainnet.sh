@@ -470,12 +470,6 @@ start_supra_rpc_node() {
 
     echo "Starting the RPC node......."
 
-    /usr/bin/expect <<EOF
-    spawn docker exec -it supra_rpc_mainnet_$IP_ADDRESS /supra/rpc_node
-    expect "Starting logger runtime"
-    send "\r"
-    expect eof
-
 EOF
     echo ""
     echo "RPC Node started"
@@ -505,7 +499,6 @@ while true; do
             configure_operator
             create_supra_container
             create_config_toml
-            download_snapshot
             echo ""
             echo "_________________________________________________________________________________________________________________"
             echo "                                                                                                                 "
@@ -516,7 +509,8 @@ while true; do
             echo ""     
             ;;
         2)
-            start_supra_rpc_node
+            download_snapshot
+            start_rpc_node
             ;;
         3)
             stop_supra_container
