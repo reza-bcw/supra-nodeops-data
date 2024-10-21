@@ -58,6 +58,15 @@ check_gcloud_installed() {
     fi
 }
 
+check_unzip() {
+    if ! command -v unzip &> /dev/null
+    then
+        echo "unzip could not be found. Please install it to proceed."
+        echo "command : sudo apt install unzip"
+        exit 1
+    fi
+}
+
 check_toml_cli() {
     if ! command -v toml &> /dev/null
     then
