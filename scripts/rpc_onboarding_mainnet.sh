@@ -5,6 +5,9 @@ SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_rpc_configs_mainnet"
 CONFIG_FILE="$(pwd)/operator_rpc_config_mainnet.toml"
 BASE_PATH="$(pwd)"
 
+GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf.sh"
+GRAFANA_CENTOS="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf-centos.sh"
+
 create_folder_and_files() {
     touch operator_rpc_config_mainnet.toml
     if [ ! -d "supra_rpc_configs_mainnet" ]; then
@@ -23,7 +26,8 @@ display_questions() {
     echo "1. Select Phase I - Setup RPC node"
     echo "2. Select Phase II - Start RPC node"
     echo "3. Select Phase III - Re-Start RPC node"
-    echo "4. Exit"
+    echo "4. Select Phase IV - Setup Grafana"
+    echo "5. Exit"
 }
 
 check_permissions() {
@@ -386,6 +390,53 @@ EOF
     docker cp supra_rpc_configs_mainnet/genesis.blob supra_rpc_mainnet_$IP_ADDRESS:/supra/
 }
 
+grafana_options(){
+
+     while true; do
+            echo "Please select the appropriate option for Grafana"
+            echo "1. Select to Setup Grafana"
+            echo "2. Select to Skip Grafana Setup"
+            read -p "Enter your choice (1 or 2): " choice
+
+            case $choice in
+                1)
+                    while true; do
+                        echo "Adding Grafana dashboard..."
+                        echo "Select your system type"
+                        echo "1. Ubuntu/Debian Linux"
+                        echo "2. Amazon Linux/Centos Linux"
+                        read -p "Enter your system type: " prompt_user
+
+                        if [ "$prompt_user" = "1" ]; then
+                            wget -O nodeops-monitoring-telegraf.sh "$GRAFANA"
+                            chmod +x nodeops-monitoring-telegraf.sh
+                            sudo -E ./nodeops-monitoring-telegraf.sh
+                        elif [ "$prompt_user" = "2" ]; then
+                            wget -O nodeops-monitoring-telegraf-centos.sh "$GRAFANA_CENTOS"
+                            chmod +x nodeops-monitoring-telegraf-centos.sh
+                            sudo -E ./nodeops-monitoring-telegraf-centos.sh
+                        else
+                            echo "Invalid option selected. Please enter 1 for Ubuntu/Debian Linux or 2 for Amazon Linux/Centos Linux."
+                        fi
+                        break
+                    done
+                    break
+                    ;;
+                2)
+                    while true; do
+                        echo "Skip the Grafana Setup"
+                        break
+                    done
+                    break
+                    ;;
+                *)
+                    echo "Invalid choice. Please select 1 for grafana setup or 2 skip the grafana."
+                    ;;
+            esac
+        done
+    
+}
+
 download_snapshot() {
     # Clean old database
     rm -rf $SCRIPT_EXECUTION_LOCATION/rpc_archive $SCRIPT_EXECUTION_LOCATION/rpc_ledger $SCRIPT_EXECUTION_LOCATION/snapshot $SCRIPT_EXECUTION_LOCATION/rpc_store $SCRIPT_EXECUTION_LOCATION/latest_snapshot_rpc.zip
@@ -528,6 +579,13 @@ while true; do
             start_rpc_node
             ;;
         4)
+            echo "Setup Grafana"
+            while true; do
+                grafana_options
+                break
+            done
+            ;;
+        5)
             echo "Exit the script"
             exit 0
             ;;
