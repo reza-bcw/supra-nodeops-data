@@ -24,7 +24,7 @@ if ! docker rm supra_rpc_$ip_address; then
 fi
 echo "rpc container removed"
 
-rm -rf $SCRIPT_EXECUTION_LOCATION/rpc_archive/* $SCRIPT_EXECUTION_LOCATION/rpc_ledger/*  $SCRIPT_EXECUTION_LOCATION/rpc_store/* $SCRIPT_EXECUTION_LOCATION/rpc_node_logs $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip $SCRIPT_EXECUTION_LOCATION/snapshot/*
+#rm -rf $SCRIPT_EXECUTION_LOCATION/rpc_archive/* $SCRIPT_EXECUTION_LOCATION/rpc_ledger/*  $SCRIPT_EXECUTION_LOCATION/rpc_store/* $SCRIPT_EXECUTION_LOCATION/rpc_node_logs $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip $SCRIPT_EXECUTION_LOCATION/snapshot/*
 
 # Remove the old Docker image
 echo "Deleting old docker images"
