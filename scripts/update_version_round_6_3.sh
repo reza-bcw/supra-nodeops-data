@@ -45,6 +45,11 @@ EOF
 
 rclone sync cloudflare-r2:testnet-snapshot/snapshots/store $SCRIPT_EXECUTION_LOCATION/smr_storage/ --progress
 
+function parse_toml() {
+    grep -w "$1" "$2" | cut -d'=' -f2- | tr -d ' "'
+}
+
+
 encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
 password=$(echo "$encoded_pswd" | openssl base64 -d -A)
 
