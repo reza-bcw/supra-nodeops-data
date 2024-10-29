@@ -18,7 +18,7 @@ if ! docker stop supra_$ip_address; then
 fi
 echo "Supra container stopped"
 
-rm -rf $SCRIPT_EXECUTION_LOCATION/ledger_storage $SCRIPT_EXECUTION_LOCATION/smr_storage/* $SCRIPT_EXECUTION_LOCATION/supra_node_logs $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip $SCRIPT_EXECUTION_LOCATION/snapshot
+#rm -rf $SCRIPT_EXECUTION_LOCATION/ledger_storage $SCRIPT_EXECUTION_LOCATION/smr_storage/* $SCRIPT_EXECUTION_LOCATION/supra_node_logs $SCRIPT_EXECUTION_LOCATION/latest_snapshot.zip $SCRIPT_EXECUTION_LOCATION/snapshot
 
 # Start the Docker container if it's running
 echo "Starting supra container"
