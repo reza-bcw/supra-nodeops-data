@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_configs"
-CONFIG_FILE="${pwd}/operator_config.toml"
+CONFIG_FILE="$(pwd)/operator_config.toml"
 
 # Parse ip_address from operator_config.toml
 ip_address=$(grep 'ip_address' operator_config.toml | awk -F'=' '{print $2}' | tr -d ' "')
