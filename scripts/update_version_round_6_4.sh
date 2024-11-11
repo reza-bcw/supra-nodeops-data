@@ -84,7 +84,6 @@ while [ $retry_count -lt $MAX_RETRIES ]; do
     # Check if the command was successful
     if [ $? -eq 0 ]; then
         echo "rclone command succeeded."
-        exit 0
     else
         # Command failed
         echo "rclone command failed. Attempt $((retry_count + 1))/$MAX_RETRIES."
