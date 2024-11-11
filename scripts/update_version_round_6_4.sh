@@ -21,7 +21,7 @@ echo "Supra container stopped"
 
 # Remove the Docker container
 echo "Removing supra container"
-if ! docker rm supra_rpc_$ip_address; then
+if ! docker rm supra_$ip_address; then
     echo "Failed to remove supra container. Exiting..."
 fi
 echo "supra container removed"
@@ -39,7 +39,7 @@ echo "Running new docker image"
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
 
-if !  docker run --name "supra_$ip" \
+if !  docker run --name "supra_$ip_address" \
     -v ./supra_configs:/supra/configs \
     --user "$USER_ID:$GROUP_ID" \
     -e "SUPRA_HOME=/supra/configs" \
