@@ -55,12 +55,7 @@ binary_upgrade(){
     echo "supra container removed"
 
 
-    # Remove the old Docker image
-    echo "Deleting old docker images"
-    if ! docker rmi $OLD_VALIDATOR_IMAGE_NAME; then
-        echo "Failed to delete old Docker image. Exiting..."
-    fi
-    echo "Deleted the old Docker images"
+
 
     # Run the Docker container
     echo "Running new docker container with new image $NEW_VALIDATOR_IMAGE_NAME "
@@ -82,6 +77,12 @@ binary_upgrade(){
     fi
     echo "Validator Node container upgraded with $NEW_VALIDATOR_IMAGE_NAME"
 
+    # Remove the old Docker image
+    echo "Deleting old docker images"
+    if ! docker rmi $OLD_VALIDATOR_IMAGE_NAME; then
+        echo "Failed to delete old Docker image. Exiting..."
+    fi
+    echo "Deleted the old Docker images"
 }
 
 
@@ -186,7 +187,7 @@ compare_block_heights() {
     difference=$(( api_block_height - log_block_height ))
     difference=${difference#-}  # Convert to absolute value
 
-    # Compare the difference to the tolerance of ±10
+    # Compare the difference to the tolerance of ±1200
     tolerance=1200
     if (( difference <= tolerance )); then
         echo "Block heights are within tolerance of ±$tolerance."
