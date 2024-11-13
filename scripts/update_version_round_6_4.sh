@@ -11,30 +11,30 @@ fi
 ip_address=$(grep 'ip_address' operator_config.toml | awk -F'=' '{print $2}' | tr -d ' "')
 
 display_questions() {
-    echo "1. Upgrade Node with latest version"
-    echo "2. Restart & Sync node with latest snapshot"
+    echo "1. Upgrade Validator Node with latest version"
+    echo "2. Restart & Sync Validator node with latest snapshot"
     echo "3. Exit"
 }
 start_stop_container(){
     # Stop the Docker container if it's running
-    echo "Stopping supra container"
+    echo "Stopping Supra container"
     if ! docker stop supra_$ip_address; then
-        echo "Failed to stop supra container. Exiting..."
+        echo "Failed to stop Supra container. Exiting..."
     else 
-        echo "Stopped Supra Container"
+        echo "Stopped Supra container"
     fi
 
     echo "Starting Supra container"
     if ! docker start supra_$ip_address; then
         echo "failed to start supra container, Exiting..."
     else
-        echo "Started Supra Container"
+        echo "Started Supra container"
     fi
 }
 binary_upgrade(){
     # Check if ip_address is set
-    read -p "Enter old Supra Docker image: " OLD_IMAGE_NAME
-    read -p "Enter new Supra Docker Image: " NEW_IMAGE_NAME 
+    read -p "Enter old Supra Docker image: " OLD_VALIDATOR_IMAGE_NAME
+    read -p "Enter new Supra Docker Image: " NEW_VALIDATOR_IMAGE_NAME 
     if [ -z "$ip_address" ]; then
         echo "IP address not found in config file."
         exit 1
@@ -57,18 +57,18 @@ binary_upgrade(){
 
     # Remove the old Docker image
     echo "Deleting old docker images"
-    if ! docker rmi $OLD_IMAGE_NAME; then
+    if ! docker rmi $OLD_VALIDATOR_IMAGE_NAME; then
         echo "Failed to delete old Docker image. Exiting..."
     fi
     echo "Deleted the old Docker images"
 
     # Run the Docker container
-    echo "Running new docker container with new image $NEW_IMAGE_NAME "
+    echo "Running new docker container with new image $NEW_VALIDATOR_IMAGE_NAME "
     USER_ID=$(id -u)
     GROUP_ID=$(id -g)
 
     if !  docker run --name "supra_$ip_address" \
-        -v ./supra_configs:/supra/configs \
+        -v $SCRIPT_EXECUTION_LOCATION:/supra/configs \
         --user "$USER_ID:$GROUP_ID" \
         -e "SUPRA_HOME=/supra/configs" \
         -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
@@ -76,11 +76,11 @@ binary_upgrade(){
         -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
         -e "SUPRA_MAX_LOG_FILES=20" \
         --net=host \
-        -itd $NEW_IMAGE_NAME; then
-        echo "Failed to run new Docker image. Exiting..."
+        -itd $NEW_VALIDATOR_IMAGE_NAME; then
+        echo "Failed to run new Validator Node container $NEW_VALIDATOR_IMAGE_NAME image. Exiting..."
         exit 1
     fi
-    echo "Docker container upgraded with $NEW_IMAGE_NAME"
+    echo "Validator Node container upgraded with $NEW_VALIDATOR_IMAGE_NAME"
 
 }
 
@@ -172,7 +172,7 @@ compare_block_heights() {
         start_node
         return 1
     else
-        log_block_height=$(grep -i "Block height" supra_configs/supra_node_logs/supra.log | tail -n 1 | sed -n 's/.*Block height: (\([0-9]*\)).*/\1/p')  
+        log_block_height=$(grep -i "Block height" $LOG_FILE | tail -n 1 | sed -n 's/.*Block height: (\([0-9]*\)).*/\1/p')  
     fi
     # Ensure both heights are valid integers
     if [[ -z "$api_block_height" || -z "$log_block_height" ]]; then
@@ -187,7 +187,7 @@ compare_block_heights() {
     difference=${difference#-}  # Convert to absolute value
 
     # Compare the difference to the tolerance of ±10
-    tolerance=50
+    tolerance=1200
     if (( difference <= tolerance )); then
         echo "Block heights are within tolerance of ±$tolerance."
         echo "API Block Height: $api_block_height"
