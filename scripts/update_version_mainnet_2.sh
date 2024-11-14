@@ -18,7 +18,7 @@ if [ -z "$ip_address" ]; then
     exit 1
 fi
 
-rm -rf $SCRIPT_EXECUTION_LOCATION/*:28000_genesis_signature.sig $SCRIPT_EXECUTION_LOCATION/hashmap_phase_1_previous.toml.bak $SCRIPT_EXECUTION_LOCATION/Hashmap_phase_1_latest.toml $SCRIPT_EXECUTION_LOCATION/hashmap_phase_2_latest.toml $SCRIPT_EXECUTION_LOCATION/smr_storage $SCRIPT_EXECUTION_LOCATION/hashmap_phase_2_previous.toml $SCRIPT_EXECUTION_LOCATION/supra_committees.json $SCRIPT_EXECUTION_LOCATION/extracted $SCRIPT_EXECUTION_LOCATION/supra_history $SCRIPT_EXECUTION_LOCATION/genesis.blob $SCRIPT_EXECUTION_LOCATION/ledger_storage $SCRIPT_EXECUTION_LOCATION/supra_node_logs $SCRIPT_EXECUTION_LOCATION/genesis_configs.json $SCRIPT_EXECUTION_LOCATION/latest_validator_info.json
+rm -rf $SCRIPT_EXECUTION_LOCATION/*.sig $SCRIPT_EXECUTION_LOCATION/hashmap_phase_1_previous.toml.bak $SCRIPT_EXECUTION_LOCATION/Hashmap_phase_1_latest.toml $SCRIPT_EXECUTION_LOCATION/hashmap_phase_2_latest.toml $SCRIPT_EXECUTION_LOCATION/smr_storage $SCRIPT_EXECUTION_LOCATION/hashmap_phase_2_previous.toml $SCRIPT_EXECUTION_LOCATION/supra_committees.json $SCRIPT_EXECUTION_LOCATION/extracted $SCRIPT_EXECUTION_LOCATION/supra_history $SCRIPT_EXECUTION_LOCATION/genesis.blob $SCRIPT_EXECUTION_LOCATION/ledger_storage $SCRIPT_EXECUTION_LOCATION/supra_node_logs $SCRIPT_EXECUTION_LOCATION/genesis_configs.json $SCRIPT_EXECUTION_LOCATION/latest_validator_info.json
 
 # Stop the Docker container if it's running
 echo "Stopping supra container"
