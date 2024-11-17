@@ -1,12 +1,12 @@
 #!/bin/bash
 
 SUPRA_DOCKER_IMAGE=""
-SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_rpc_configs_mainnet"
-CONFIG_FILE="$(pwd)/operator_rpc_config_mainnet.toml"
-BASE_PATH="$(pwd)"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+HOST_SUPRA_HOME="$SCRIPT_DIR/supra_rpc_configs_mainnet"
+CONFIG_FILE="$SCRIPT_DIR)/operator_rpc_config_mainnet.toml"
 
 remove_old_files(){
-rm -rf $SCRIPT_EXECUTION_LOCATION $CONFIG_FILE
+rm -rf $HOST_SUPRA_HOME $CONFIG_FILE
 }
 
 GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf.sh"
@@ -207,7 +207,7 @@ function create_supra_container() {
     GROUP_ID=$(id -g)
 
     docker run --name "supra_rpc_mainnet_$IP_ADDRESS" \
-        -v $SCRIPT_EXECUTION_LOCATION:/supra/configs \
+        -v $HOST_SUPRA_HOME:/supra/configs \
         --user "${USER_ID}:${GROUP_ID}"\
         -e "SUPRA_HOME=/supra/configs" \
         -e "SUPRA_LOG_DIR=/supra/configs/rpc_node_logs" \
@@ -235,7 +235,7 @@ create_config_toml() {
     local config_file="${path_passed}/config.toml"
     echo $config_file
 
-    read -p "Enter Validator IP address: " ip_address
+    read -p "Enter the IP address of your validator: " ip_address
     # Create config.toml content
     cat <<EOF > "${config_file}"
     ####################################### PROTOCOL PARAMETERS #######################################
@@ -408,13 +408,13 @@ create_config_toml() {
     description = "Localhost"
     mode = "Cors"
 EOF
-    docker cp $SCRIPT_EXECUTION_LOCATION/config.toml supra_rpc_mainnet_$IP_ADDRESS:/supra/
+    docker cp $HOST_SUPRA_HOME/config.toml supra_rpc_mainnet_$IP_ADDRESS:/supra/
 
-    wget -O $SCRIPT_EXECUTION_LOCATION/ca_certificate.pem https://testnet-snapshot.supra.com/certs/ca_certificate.pem
-    wget -O $SCRIPT_EXECUTION_LOCATION/client_supra_certificate.pem https://testnet-snapshot.supra.com/certs/client_supra_certificate.pem
-    wget -O $SCRIPT_EXECUTION_LOCATION/client_supra_key.pem https://testnet-snapshot.supra.com/certs/client_supra_key.pem
-    wget -O $SCRIPT_EXECUTION_LOCATION/genesis.blob https://mainnet-data.supra.com/configs/genesis.blob
-    wget -O $SCRIPT_EXECUTION_LOCATION/supra_committees.json https://mainnet-data.supra.com/configs/supra_committees.json
+    wget -O $HOST_SUPRA_HOME/ca_certificate.pem https://testnet-snapshot.supra.com/certs/ca_certificate.pem
+    wget -O $HOST_SUPRA_HOME/client_supra_certificate.pem https://testnet-snapshot.supra.com/certs/client_supra_certificate.pem
+    wget -O $HOST_SUPRA_HOME/client_supra_key.pem https://testnet-snapshot.supra.com/certs/client_supra_key.pem
+    wget -O $HOST_SUPRA_HOME/genesis.blob https://mainnet-data.supra.com/configs/genesis.blob
+    wget -O $HOST_SUPRA_HOME/supra_committees.json https://mainnet-data.supra.com/configs/supra_committees.json
     
     docker cp supra_rpc_configs_mainnet/genesis.blob supra_rpc_mainnet_$IP_ADDRESS:/supra/
 }
@@ -468,11 +468,8 @@ grafana_options(){
 
 download_snapshot() {
     #setup Rclone
-    curl https://rclone.org/install.sh | sudo bash
-    mkdir -p ~/.config/rclone/
-    touch ~/.config/rclone/rclone.conf
-    cat <<EOF > ~/.config/rclone/rclone.conf
-    [cloudflare-r2]
+    RCLONE_CONFIG_HEADER="[cloudflare-r2]"
+    RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
     type = s3
     provider = Cloudflare
     access_key_id = c64bed98a85ccd3197169bf7363ce94f
@@ -481,25 +478,29 @@ download_snapshot() {
     endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
     acl = private
     no_check_bucket = true
-EOF
-
+    "
+    curl https://rclone.org/install.sh | sudo bash
+    mkdir -p ~/.config/rclone/
+    if ! grep "$RCLONE_CONFIG_HEADER" ~/.config/rclone/rclone.conf >/dev/null; then
+        echo "$RCLONE_CONFIG" >> ~/.config/rclone/rclone.conf
+    fi
     # Set the maximum number of retries
     MAX_RETRIES=5
     RETRY_DELAY=10  # Delay in seconds before retrying
     retry_count=0
 
     # Create a log file for Rclone sync
-    LOG_FILE="$SCRIPT_EXECUTION_LOCATION/rclone_sync.log"
+    LOG_FILE="$HOST_SUPRA_HOME/rclone_sync.log"
     echo "Rclone sync process started at $(date)" | tee -a "$LOG_FILE"
 
     while [ $retry_count -lt $MAX_RETRIES ]; do
         # Run the rclone sync command, output to the console and log simultaneously
         echo "Running rclone sync attempt $((retry_count + 1)) at $(date)" | tee -a "$LOG_FILE"
-        rclone sync cloudflare-r2:mainnet/snapshots/archive "$SCRIPT_EXECUTION_LOCATION/rpc_archive/" --progress | tee -a "$LOG_FILE"
+        rclone sync cloudflare-r2:mainnet/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive/" --progress | tee -a "$LOG_FILE"
 
         # Check if the rclone command was successful
         if [ $? -eq 0 ]; then
-            rclone sync cloudflare-r2:mainnet/snapshots/archive "$SCRIPT_EXECUTION_LOCATION/rpc_archive/" --progress | tee -a "$LOG_FILE"
+            rclone sync cloudflare-r2:mainnet/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive/" --progress | tee -a "$LOG_FILE"
             echo "rclone sync completed successfully at $(date)" | tee -a "$LOG_FILE"
             break
         else
@@ -512,11 +513,11 @@ EOF
     while [ $retry_count -lt $MAX_RETRIES ]; do
         # Run the rclone sync command, output to the console and log simultaneously
         echo "Running rclone sync attempt $((retry_count + 1)) at $(date)" | tee -a "$LOG_FILE"
-        rclone sync cloudflare-r2:mainnet/snapshots/store "$SCRIPT_EXECUTION_LOCATION/rpc_store/" --progress | tee -a "$LOG_FILE"
+        rclone sync cloudflare-r2:mainnet/snapshots/store "$HOST_SUPRA_HOME/rpc_store/" --progress | tee -a "$LOG_FILE"
 
         # Check if the rclone command was successful
         if [ $? -eq 0 ]; then
-            rclone sync cloudflare-r2:mainnet/snapshots/store "$SCRIPT_EXECUTION_LOCATION/rpc_store/" --progress | tee -a "$LOG_FILE"
+            rclone sync cloudflare-r2:mainnet/snapshots/store "$HOST_SUPRA_HOME/rpc_store/" --progress | tee -a "$LOG_FILE"
             echo "rclone sync completed successfully at $(date)" | tee -a "$LOG_FILE"
             break
         else
@@ -546,9 +547,9 @@ start_supra_container(){
     if ! docker start supra_rpc_mainnet_$IP_ADDRESS; then
         echo "Failed to start the container."
     else
-        docker cp "$SCRIPT_EXECUTION_LOCATION/config.toml" supra_rpc_mainnet_$IP_ADDRESS:/supra/
-        rm "$SCRIPT_EXECUTION_LOCATION/genesis_blob.zip"
-        rm -rf "$SCRIPT_EXECUTION_LOCATION/genesis_blob"
+        docker cp "$HOST_SUPRA_HOME/config.toml" supra_rpc_mainnet_$IP_ADDRESS:/supra/
+        rm "$HOST_SUPRA_HOME/genesis_blob.zip"
+        rm -rf "$HOST_SUPRA_HOME/genesis_blob"
         echo "Started the RPC Node container."
     fi
 
@@ -573,25 +574,17 @@ start_supra_rpc_node() {
         # Prompt for either IP address or DNS name
         while true; do
             echo "Please select the appropriate option to start the rpc node:"
-            echo "1. Start your rpc node within 4 hour window of network start"
-            echo "2. Start your rpc node after 4 hour window of the network start using snapshot"
+            echo "1. Start your rpc node within 2 hour window of network start"
+            echo "2. Start your rpc node after 2 hour window of the network start using snapshot"
             read -p "Enter your choice (1 or 2): " choice
 
             case $choice in
                 1)
-                    while true; do
-                        start_rpc_node
-                        break
-                    done
-                    break
+                    start_rpc_node
                     ;;
                 2)
-                    while true; do
-                        download_snapshot
-                        start_rpc_node
-                        break
-                    done
-                    break
+                    download_snapshot
+                    start_rpc_node
                     ;;
                 *)
                     echo "Invalid choice. Please select 1 for node without snapshot or 2 using the snapshot."
@@ -627,7 +620,7 @@ while true; do
 
     case $choice in
         1)
-            check_permissions "$SCRIPT_EXECUTION_LOCATION"
+            check_permissions "$HOST_SUPRA_HOME"
             remove_docker
             remove_old_files
             configure_operator

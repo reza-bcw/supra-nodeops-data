@@ -1,9 +1,9 @@
 #!/bin/bash
 
 SUPRA_DOCKER_IMAGE=""
-SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_configs_mainnet"
-CONFIG_FILE="$(pwd)/operator_config_mainnet.toml"
-BASE_PATH="$(pwd)"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+HOST_SUPRA_HOME="$SCRIPT_DIR/supra_configs_mainnet"
+CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
 
 GITHUB_URL_SSH="git@github.com:Entropy-Foundation/supra-nodeops-data.git"
 
@@ -12,8 +12,8 @@ GRAFANA_CENTOS="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-
 
 create_folder_and_files() {
     touch $CONFIG_FILE
-    if [ ! -d "$SCRIPT_EXECUTION_LOCATION" ]; then
-        mkdir $SCRIPT_EXECUTION_LOCATION
+    if [ ! -d "$HOST_SUPRA_HOME" ]; then
+        mkdir $HOST_SUPRA_HOME
     else
         echo ""
     fi
@@ -126,7 +126,7 @@ prerequisites() {
 
 archive_and_remove_phase_1_files() {
     # Navigate to the script execution location
-    cd "$SCRIPT_EXECUTION_LOCATION" || {
+    cd "$HOST_SUPRA_HOME" || {
         echo "ERROR: Unable to navigate to script execution location."
         exit 1
     }
@@ -287,7 +287,7 @@ function create_supra_container() {
     fi
     
     docker run --name "supra_mainnet_$ip" \
-        -v ./supra_configs_mainnet:/supra/configs \
+        -v "$HOST_SUPRA_HOME":/supra/configs \
         --user "$USER_ID:$GROUP_ID" \
         -e "SUPRA_HOME=/supra/configs" \
         -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
@@ -304,66 +304,6 @@ function create_supra_container() {
         return 1
     fi
 }
-
-create_smr_settings() {
-    echo ""
-    echo "CREATE SMR SETTINGS TOML FILE "
-    echo ""
-    local local_path="$1"
-    local path_passed="${local_path}"
-    local smr_settings_file="${path_passed}/smr_settings.toml"
-
-    if [ -f "${smr_settings_file}" ]; then
-        echo "smr_settings.toml already exists at ${path_passed}. Skipping creation."
-        return 0
-    fi
-
-    # Create smr_settings.toml content
-    cat <<EOF > "${smr_settings_file}"
-    [instance]
-    chain_id = 6
-    epoch_duration_secs = 7200
-    recurring_lockup_duration_secs = 14400
-    voting_duration_secs = 7200
-    is_testnet = true
-    genesis_timestamp_microseconds = 1725840000000000
-
-    [mempool]
-    max_batch_delay_ms = 500
-    max_batch_size_bytes = 500000
-    sync_retry_delay_ms = 2000
-    sync_retry_nodes = 3
-
-    [moonshot]
-    block_recency_bound_ms = 500
-    halt_block_production_when_no_txs = false
-    leader_elector = "FairSuccession"
-    max_block_delay_ms = 2500
-    max_payload_items_per_block = 100
-    message_recency_bound_rounds = 20
-    sync_retry_delay_ms = 1000
-    timeout_delay_ms = 5000
-
-    [node]
-    connection_refresh_timeout_sec = 1
-    resume = true
-    root_ca_cert_path = "configs/ca_certificate.pem"
-    rpc_access_port = 26000
-    server_cert_path = "configs/server_supra_certificate.pem"
-    server_private_key_path = "configs/server_supra_key.pem"
-
-    [node.database_setup.dbs.chain_store.rocks_db]
-    path = "configs/smr_storage"
-    enable_pruning = true
-
-    [node.database_setup.dbs.ledger.rocks_db]
-    path = "configs/ledger_storage"
-
-    [node.database_setup.prune_config]
-    epochs_to_retain = 84
-EOF
-}
-
 function parse_toml() {
     grep -w "$1" "$2" | cut -d'=' -f2- | tr -d ' "'
 }
@@ -372,7 +312,7 @@ generate_and_activate_profile() {
     ip_address=$(parse_toml "ip_address" "$1")
     encoded_password=$(parse_toml "password" "$1")
     decoded_password=$(echo "$encoded_password" | openssl base64 -d -A)
-    cd "$BASE_PATH"
+    cd "$SCRIPT_DIR"
 
 expect << EOF
 spawn docker exec -it supra_mainnet_$ip_address /supra/supra key generate-profile supra_mainnet_$ip_address
@@ -401,12 +341,12 @@ function generate_validator_identity_ip() {
     echo "Generating validator identity"
     echo " " 
 
-    ip_address=$(extract_ip "operator_config_mainnet.toml")
+    ip_address=$(extract_ip "$CONFIG_FILE")
     local dns_name="$1"
     encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
     decoded_pswd=$(echo "$encoded_pswd" | openssl base64 -d -A)
 
-    cd "$BASE_PATH" || { echo "Failed to change directory to $BASE_PATH"; exit 1; }
+    cd "$SCRIPT_DIR" || { echo "Failed to change directory to $SCRIPT_DIR"; exit 1; }
 
     if [ -n "$ip_address" ]; then
     expect << EOF
@@ -426,7 +366,7 @@ function generate_validator_identity_dns(){
     echo "Generating validator identity"
     echo " " 
 
-    ip_address=$(extract_ip "operator_config_mainnet.toml")
+    ip_address=$(extract_ip "$CONFIG_FILE")
     local dns_name="$1"
     encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
     decoded_pswd=$(echo "$encoded_pswd" | openssl base64 -d -A)
@@ -453,7 +393,7 @@ function generate_hashmap_phase_1() {
 
     local output_file=$1
 
-    cd "$SCRIPT_EXECUTION_LOCATION" || { echo "Failed to change directory to $SCRIPT_EXECUTION_LOCATION"; exit 1; }
+    cd "$HOST_SUPRA_HOME" || { echo "Failed to change directory to $HOST_SUPRA_HOME"; exit 1; }
 
     declare -a files=(
         "smr_public_key.json"
@@ -491,7 +431,7 @@ function generate_hashmap_phase_2() {
         return 1
     fi
 
-    cd "$SCRIPT_EXECUTION_LOCATION" || { echo "Failed to change directory to $SCRIPT_EXECUTION_LOCATION"; return 1; }
+    cd "$HOST_SUPRA_HOME" || { echo "Failed to change directory to $HOST_SUPRA_HOME"; return 1; }
 
     declare -a files=(
         "$hash_toml"
@@ -520,10 +460,10 @@ function generate_hashmap_phase_2() {
 
 function setup_repository_for_nodeOp() {
     echo ""
-    cd "$BASE_PATH"
+    cd "$SCRIPT_DIR"
 
-    local config_file="${BASE_PATH}/operator_config_mainnet.toml"
-    local clone_folder="${BASE_PATH}/supra-nodeops-data"
+    local config_file="$CONFIG_FILE"
+    local clone_folder="${SCRIPT_DIR}/supra-nodeops-data"
 
     local ip_address
     ip_address=$(grep -oP '(?<=ip_address = ").*?(?=")' "$config_file")
@@ -552,7 +492,7 @@ function setup_repository_for_nodeOp() {
     if [ ! -d "supra_mainnet_${ip_address}" ]; then
         mkdir "supra_mainnet_${ip_address}"
         echo "Folder 'supra_mainnet_${ip_address}' created successfully."
-        IP_ADDRESS=$ip_address
+        ip_address=$ip_address
     else
         echo "Folder 'supra_mainnet_${ip_address}' already exists."
     fi
@@ -783,8 +723,8 @@ function automated_validator_node_setup_and_configuration() {
     configure_operator
     validate_docker_image    
     create_supra_container "$SUPRA_DOCKER_IMAGE"
-    create_smr_settings "$SCRIPT_EXECUTION_LOCATION"
-    cd $SCRIPT_EXECUTION_LOCATION || { echo "Failed to change directory to $SCRIPT_EXECUTION_LOCATION"; exit 1; }
+    create_smr_settings "$HOST_SUPRA_HOME"
+    cd $HOST_SUPRA_HOME || { echo "Failed to change directory to $HOST_SUPRA_HOME"; exit 1; }
     generate_and_activate_profile "$CONFIG_FILE"
 
     # Prompt for either IP address or DNS name
@@ -798,8 +738,8 @@ function automated_validator_node_setup_and_configuration() {
             1)
                 # Prompt for IP address
                 while true; do
-                    IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml") 
-                    if [[ $IP_ADDRESS =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+                    ip_address=$(extract_ip "$CONFIG_FILE") 
+                    if [[ $ip_address =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
                         DNS_NAME=""  # Reset DNS if the user chooses IP
                         generate_validator_identity_ip "$DNS_NAME"
 
@@ -817,7 +757,7 @@ function automated_validator_node_setup_and_configuration() {
                     if [[ -z "$DNS_NAME" ]]; then
                         echo "DNS name cannot be empty. Please enter a valid DNS name."
                     else
-                        IP_ADDRESS=""  # Reset IP if the user chooses DNS
+                        ip_address=""  # Reset IP if the user chooses DNS
                         generate_validator_identity_dns "$DNS_NAME"
                         break
                     fi
@@ -831,8 +771,8 @@ function automated_validator_node_setup_and_configuration() {
     done
 
     generate_hashmap_phase_1 hashmap_phase_1_previous.toml
-    setup_repository_for_nodeOp $SCRIPT_EXECUTION_LOCATION
-    copy_files_to_node_operator_folder $SCRIPT_EXECUTION_LOCATION $BASE_PATH/supra-nodeops-data/release_round7_data/operators/supra_mainnet_$ip_address 
+    setup_repository_for_nodeOp $HOST_SUPRA_HOME
+    copy_files_to_node_operator_folder $HOST_SUPRA_HOME $SCRIPT_DIR/supra-nodeops-data/release_round7_data/operators/supra_mainnet_$ip_address 
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo "                                         ✔ Phase 1: Completed Successfully                                       "
@@ -872,12 +812,12 @@ EOF
 
     echo "Hashing signature and committee files "
 
-    generate_hashmap_phase_2 "hashmap_phase_2_previous.toml" "$SCRIPT_EXECUTION_LOCATION/$sig_file"
+    generate_hashmap_phase_2 "hashmap_phase_2_previous.toml" "$HOST_SUPRA_HOME/$sig_file"
     echo "clone signature files to github"
 
-    destination_path="$BASE_PATH/supra-nodeops-data/release_round7_data/signatures"
+    destination_path="$SCRIPT_DIR/supra-nodeops-data/release_round7_data/signatures"
 
-    copy_signature_file_to_github "$SCRIPT_EXECUTION_LOCATION/$FILE_NAME" "$destination_path"
+    copy_signature_file_to_github "$HOST_SUPRA_HOME/$FILE_NAME" "$destination_path"
 
     echo "_________________________________________________________________________________________________________________"
     echo ""
@@ -915,7 +855,7 @@ zip_and_clean_phase_3_files() {
 }
 
 start_node(){
-    ip_address=$(extract_ip "operator_config_mainnet.toml")
+    ip_address=$(extract_ip "$CONFIG_FILE")
     encoded_pswd=$(parse_toml "password" "$CONFIG_FILE")
     password=$(echo "$encoded_pswd" | openssl base64 -d -A)
 
@@ -974,7 +914,7 @@ grafana_options(){
 }
 
 start_supra_container(){
-ip_address=$(grep 'ip_address' operator_config_mainnet.toml | awk -F'=' '{print $2}' | tr -d ' "')
+ip_address=$(grep 'ip_address' $CONFIG_FILE | awk -F'=' '{print $2}' | tr -d ' "')
 echo "Starting supra container"
     if ! docker start supra_mainnet_$ip_address; then
         echo "Failed starting the Validator node container"
@@ -985,7 +925,7 @@ echo "Starting supra container"
 }
 
 stop_supra_container(){
-ip_address=$(grep 'ip_address' operator_config_mainnet.toml | awk -F'=' '{print $2}' | tr -d ' "')
+ip_address=$(grep 'ip_address' $CONFIG_FILE | awk -F'=' '{print $2}' | tr -d ' "')
 echo "Stopping supra container"
 if ! docker stop supra_mainnet_$ip_address; then
     echo "Failed to stop supra container. Exiting..."
@@ -1005,7 +945,7 @@ get_dns_or_socketaddr() {
     echo "$dns_name"
 }
 setup_file_name() {
-    local validator_file="$SCRIPT_EXECUTION_LOCATION/validator_public_identity.toml"
+    local validator_file="$HOST_SUPRA_HOME/validator_public_identity.toml"
 
     if [[ -f "$validator_file" ]]; then
         # Get the dns_name or socket address
@@ -1024,11 +964,8 @@ setup_file_name() {
 }
 snapshot_download(){
  #setup Rclone
-    curl https://rclone.org/install.sh | sudo bash
-    mkdir -p ~/.config/rclone/
-    touch ~/.config/rclone/rclone.conf
-    cat <<EOF > ~/.config/rclone/rclone.conf
-    [cloudflare-r2]
+    RCLONE_CONFIG_HEADER="[cloudflare-r2]"
+    RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
     type = s3
     provider = Cloudflare
     access_key_id = c64bed98a85ccd3197169bf7363ce94f
@@ -1037,8 +974,12 @@ snapshot_download(){
     endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
     acl = private
     no_check_bucket = true
-EOF
-
+    "
+    curl https://rclone.org/install.sh | sudo bash
+    mkdir -p ~/.config/rclone/
+    if ! grep "$RCLONE_CONFIG_HEADER" ~/.config/rclone/rclone.conf >/dev/null; then
+        echo "$RCLONE_CONFIG" >> ~/.config/rclone/rclone.conf
+    fi
 
     # Set the maximum number of retries
     MAX_RETRIES=5
@@ -1046,18 +987,18 @@ EOF
     retry_count=0
 
     # Create a log file for Rclone sync
-    LOG_FILE="$SCRIPT_EXECUTION_LOCATION/rclone_sync.log"
+    LOG_FILE="$HOST_SUPRA_HOME/rclone_sync.log"
     echo "Rclone sync process started at $(date)" | tee -a "$LOG_FILE"
 
     # Loop to retry the command if it fails
     while [ $retry_count -lt $MAX_RETRIES ]; do
         # Run the rclone sync command, output to the console and log simultaneously
         echo "Running rclone sync attempt $((retry_count + 1)) at $(date)" | tee -a "$LOG_FILE"
-        rclone sync cloudflare-r2:mainnet/snapshots/store "$SCRIPT_EXECUTION_LOCATION/smr_storage/" --progress | tee -a "$LOG_FILE"
+        rclone sync cloudflare-r2:mainnet/snapshots/store "$HOST_SUPRA_HOME/smr_storage/" --progress | tee -a "$LOG_FILE"
 
         # Check if the rclone command was successful
         if [ $? -eq 0 ]; then
-            rclone sync cloudflare-r2:mainnet/snapshots/store "$SCRIPT_EXECUTION_LOCATION/smr_storage/" --progress | tee -a "$LOG_FILE"
+            rclone sync cloudflare-r2:mainnet/snapshots/store "$HOST_SUPRA_HOME/smr_storage/" --progress | tee -a "$LOG_FILE"
             echo "rclone sync completed successfully at $(date)" | tee -a "$LOG_FILE"
             break
         else
@@ -1078,24 +1019,23 @@ EOF
 phase3_fresh_start() {
 
     echo "Phase 3 fresh start"
-    rm -rf $SCRIPT_EXECUTION_LOCATION/smr_settings.toml
-    wget -O $SCRIPT_EXECUTION_LOCATION/smr_settings.toml https://mainnet-data.supra.com/configs/smr_settings.toml
+    wget -O $HOST_SUPRA_HOME/smr_settings.toml https://mainnet-data.supra.com/configs/smr_settings.toml
 
     echo "Download Genesis Blob"
     echo ""
-    wget -O $SCRIPT_EXECUTION_LOCATION/genesis.blob https://mainnet-data.supra.com/configs/genesis.blob
+    wget -O $HOST_SUPRA_HOME/genesis.blob https://mainnet-data.supra.com/configs/genesis.blob
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo "                                         ✔ Phase 3: Completed                                                    "
-    echo ""  Genesis.blob file is stored at $SCRIPT_EXECUTION_LOCATION/genesis.blob
+    echo ""  Genesis.blob file is stored at $HOST_SUPRA_HOME/genesis.blob
     echo "_________________________________________________________________________________________________________________"
     echo ""
     echo ""   
 }
  
 update_supra_binaries(){
-    # Parse ip_address from operator_config_mainnet.toml
-    ip_address=$(grep 'ip_address' operator_config_mainnet.toml | awk -F'=' '{print $2}' | tr -d ' "')
+    # Parse ip_address from $CONFIG_FILE
+    ip_address=$(grep 'ip_address' $CONFIG_FILE | awk -F'=' '{print $2}' | tr -d ' "')
 
     # Check if ip_address is set
     if [ -z "$ip_address" ]; then
@@ -1133,7 +1073,7 @@ update_supra_binaries(){
     validate_docker_image
 
     if !     docker run --name "supra_mainnet_$ip_address" \
-            -v $SCRIPT_EXECUTION_LOCATION:/supra/configs \
+            -v $HOST_SUPRA_HOME:/supra/configs \
             --user "$USER_ID:$GROUP_ID" \
             -e "SUPRA_HOME=/supra/configs" \
             -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
@@ -1158,27 +1098,17 @@ start_supra_node() {
         # Prompt for either IP address or DNS name
         while true; do
             echo "Please select the appropriate option to start the node:"
-            echo "1. Start your node within 4 hour window of network start"
-            echo "2. Start your node after 4 hour window of the network start using snapshot"
+            echo "1. Start your node within 2 hour window of network start"
+            echo "2. Start your node after 2 hour window of the network start using snapshot"
             read -p "Enter your choice (1 or 2): " choice
 
             case $choice in
                 1)
-                    # Prompt for IP address
-                    while true; do
-                        start_node
-                        break
-                    done
-                    break
+                    start_node
                     ;;
                 2)
-                    # Prompt for DNS name
-                    while true; do
-                        snapshot_download
-                        start_node
-                        break
-                    done
-                    break
+                    snapshot_download
+                    start_node
                     ;;
                 *)
                     echo "Invalid choice. Please select 1 for node without snapshot or 2 using the snapshot."
@@ -1201,7 +1131,7 @@ while true; do
 
     case $choice in
         1)
-            check_permissions "$SCRIPT_EXECUTION_LOCATION"
+            check_permissions "$HOST_SUPRA_HOME"
             archive_and_remove_phase_1_files
 
             if is_supra_running; then
@@ -1225,11 +1155,11 @@ while true; do
             ;;
         2)
 
-            IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml")
-            dns_name=$(parse_toml "address.Dns.name" "$SCRIPT_EXECUTION_LOCATION/validator_public_identity.toml")
+            ip_address=$(extract_ip "$CONFIG_FILE")
+            dns_name=$(parse_toml "address.Dns.name" "$HOST_SUPRA_HOME/validator_public_identity.toml")
             setup_file_name
             echo "File NAME is set to : $FILE_NAME"
-            CONFIG_FILE="$BASE_PATH/operator_config_mainnet.toml"
+            CONFIG_FILE="$SCRIPT_DIR/$CONFIG_FILE"
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
             
@@ -1238,7 +1168,7 @@ while true; do
 
             
 
-            if (check_phase_1_files "$SCRIPT_EXECUTION_LOCATION"); then
+            if (check_phase_1_files "$HOST_SUPRA_HOME"); then
                 generate_hashmap_phase_1 "hashmap_phase_1_latest.toml"
                 echo "Performing hash check for phase 1"
                
@@ -1259,8 +1189,8 @@ while true; do
             fi
                echo "Checking phase 2 files are present"
 
-            if (check_phase_2_files "$SCRIPT_EXECUTION_LOCATION" "$FILE_NAME"); then
-                generate_hashmap_phase_2 "hashmap_phase_2_latest.toml" "$SCRIPT_EXECUTION_LOCATION/$sig_file"
+            if (check_phase_2_files "$HOST_SUPRA_HOME" "$FILE_NAME"); then
+                generate_hashmap_phase_2 "hashmap_phase_2_latest.toml" "$HOST_SUPRA_HOME/$sig_file"
                 echo "Performing hash check for phase 2"
                 
                 result=$(check_toml_hashes "hashmap_phase_2_previous.toml" "hashmap_phase_2_latest.toml")
@@ -1275,7 +1205,7 @@ while true; do
                     fi
             else 
                 echo "Phase 2: Required files are not present"
-                phase2_fresh_start "$FILE_NAME" $CONFIG_FILE $SCRIPT_EXECUTION_LOCATION
+                phase2_fresh_start "$FILE_NAME" $CONFIG_FILE $HOST_SUPRA_HOME
 
             fi
             read -p "Do you want to override phase 2 (Y/n) :: " decision
@@ -1286,7 +1216,7 @@ while true; do
                     echo "Archiving Phase 2 Files"
                     zip_and_delete_phase_2_files
                     echo ""
-                    phase2_fresh_start  "$FILE_NAME" $CONFIG_FILE $SCRIPT_EXECUTION_LOCATION
+                    phase2_fresh_start  "$FILE_NAME" $CONFIG_FILE $HOST_SUPRA_HOME
                 else
                     echo "phase 2: override skipped"
                     echo ""
@@ -1299,27 +1229,17 @@ while true; do
             ;;
         3)
             echo ""
-            IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml") 
-            dns_name=$(parse_toml "address.Dns.name" "$SCRIPT_EXECUTION_LOCATION/validator_public_identity.toml")
-            setup_file_name
-            echo "File NAME is set to : $FILE_NAME"
-            CONFIG_FILE="$BASE_PATH/operator_config_mainnet.toml"
-            enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
-            decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
-
+            ip_address=$(extract_ip "$CONFIG_FILE") 
             check_and_start_container "supra_mainnet_$ip_address"
-
             phase3_fresh_start
-
             ;;
         
         4) 
-            IP_ADDRESS=$(extract_ip "operator_config_mainnet.toml") 
-            CONFIG_FILE="$BASE_PATH/operator_config_mainnet.toml"
+            ip_address=$(extract_ip "$CONFIG_FILE") 
             enc_password=$(grep '^password' "$CONFIG_FILE" | awk -F' = ' '{print $2}' | tr -d '"')
             decoded_password=$(echo "$enc_password" | openssl base64 -d -A)
             echo "Starting the Node"
-            start_supra_node "$decoded_password" "$IP_ADDRESS"
+            start_supra_node "$decoded_password" "$ip_address"
             ;;
         5)
             echo "Restart the node using snapshot"
