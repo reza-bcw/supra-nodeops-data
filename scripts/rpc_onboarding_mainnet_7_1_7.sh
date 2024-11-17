@@ -3,7 +3,7 @@
 SUPRA_DOCKER_IMAGE=""
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 HOST_SUPRA_HOME="$SCRIPT_DIR/supra_rpc_configs_mainnet"
-CONFIG_FILE="$SCRIPT_DIR)/operator_rpc_config_mainnet.toml"
+CONFIG_FILE="$SCRIPT_DIR/operator_rpc_config_mainnet.toml"
 
 remove_old_files(){
 rm -rf $HOST_SUPRA_HOME $CONFIG_FILE
@@ -581,10 +581,12 @@ start_supra_rpc_node() {
             case $choice in
                 1)
                     start_rpc_node
+                    break
                     ;;
                 2)
                     download_snapshot
                     start_rpc_node
+                    break
                     ;;
                 *)
                     echo "Invalid choice. Please select 1 for node without snapshot or 2 using the snapshot."

@@ -1105,10 +1105,12 @@ start_supra_node() {
             case $choice in
                 1)
                     start_node
+                    break
                     ;;
                 2)
                     snapshot_download
                     start_node
+                    break
                     ;;
                 *)
                     echo "Invalid choice. Please select 1 for node without snapshot or 2 using the snapshot."
