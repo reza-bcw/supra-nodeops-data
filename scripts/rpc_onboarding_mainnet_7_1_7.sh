@@ -614,8 +614,6 @@ start_supra_rpc_node() {
 }
 
 while true; do
-
-    create_folder_and_files
     prerequisites
     echo ""
     display_questions
@@ -625,6 +623,7 @@ while true; do
     case $choice in
         1)
             remove_old_files
+            create_folder_and_files
             check_permissions "$HOST_SUPRA_HOME"
             remove_docker
             configure_operator
