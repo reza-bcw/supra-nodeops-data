@@ -17,7 +17,7 @@ acl = private
 no_check_bucket = true
 "
 remove_old_files(){
-rm -rf $HOST_SUPRA_HOME $CONFIG_FILE
+sudo rm -rf $HOST_SUPRA_HOME $CONFIG_FILE
 }
 
 GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf.sh"
