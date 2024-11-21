@@ -624,9 +624,9 @@ while true; do
 
     case $choice in
         1)
+            remove_old_files
             check_permissions "$HOST_SUPRA_HOME"
             remove_docker
-            remove_old_files
             configure_operator
             create_supra_container
             create_config_toml
