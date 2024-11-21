@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SUPRA_DOCKER_IMAGE=""
+SUPRA_DOCKER_IMAGE="asia-docker.pkg.dev/supra-devnet-misc/supra-mainnet/validator-node:v7.1.7"
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 HOST_SUPRA_HOME="$SCRIPT_DIR/supra_configs_mainnet"
 CONFIG_FILE="$SCRIPT_DIR/operator_config_mainnet.toml"
@@ -1059,28 +1059,28 @@ update_supra_binaries(){
     fi
     echo "Supra container removed"
 
-    validate_docker_image
+    # validate_docker_image
 
     # Remove the old Docker image
-    echo "Deleting old docker image"
-    if ! docker rmi $SUPRA_DOCKER_IMAGE; then
-        echo "Failed to delete old Docker image. Exiting..."
-    fi
-    echo "Deleted the old Docker image"
+    # echo "Deleting old docker image"
+    # if ! docker rmi $SUPRA_DOCKER_IMAGE; then
+    #     echo "Failed to delete old Docker image. Exiting..."
+    # fi
+    # echo "Deleted the old Docker image"
 
     # Run the Docker container
     echo "Running new docker image"
     USER_ID=$(id -u)
     GROUP_ID=$(id -g)
 
-    validate_docker_image
+    # validate_docker_image
 
     if !     docker run --name "supra_mainnet_$ip_address" \
             -v $HOST_SUPRA_HOME:/supra/configs \
             --user "$USER_ID:$GROUP_ID" \
             -e "SUPRA_HOME=/supra/configs" \
             -e "SUPRA_LOG_DIR=/supra/configs/supra_node_logs" \
-            -e "SUPRA_MAX_LOG_FILE_SIZE=4000000" \
+            -e "SUPRA_MAX_LOG_FILE_SIZE=50000000" \
             -e "SUPRA_MAX_UNCOMPRESSED_LOGS=5" \
             -e "SUPRA_MAX_LOG_FILES=20" \
             --net=host \
