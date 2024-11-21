@@ -5,6 +5,17 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 HOST_SUPRA_HOME="$SCRIPT_DIR/supra_rpc_configs_mainnet"
 CONFIG_FILE="$SCRIPT_DIR/operator_rpc_config_mainnet.toml"
 
+RCLONE_CONFIG_HEADER="[cloudflare-r2]"
+RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
+type = s3
+provider = Cloudflare
+access_key_id = c64bed98a85ccd3197169bf7363ce94f
+secret_access_key = 0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7
+region = auto
+endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
+acl = private
+no_check_bucket = true
+"
 remove_old_files(){
 rm -rf $HOST_SUPRA_HOME $CONFIG_FILE
 }
@@ -242,7 +253,7 @@ create_config_toml() {
 
     # The below parameters are fixed for the protocol and must be agreed upon by all node operators
     # at genesis. They may subsequently be updated via governance decisions. Paths are set relative
-    # to SUPRA_HOME.
+    # to $SUPRA_HOME.
 
     # Core protocol parameters.
 
@@ -262,8 +273,8 @@ create_config_toml() {
     chain_instance.voting_duration_secs = 165600
     # Determines whether the network will start with a faucet, amongst other things.
     chain_instance.is_testnet = false
-    # Monday, Nov 11, 2024 12:00:00.000 AM (UTC)
-    chain_instance.genesis_timestamp_microseconds = 1731283200000000
+    # Wednesday, Nov 20, 2024 12:00:00.000 AM (UTC).
+    chain_instance.genesis_timestamp_microseconds = 1732060800000000
 
 
     ######################################### NODE PARAMETERS #########################################
@@ -468,18 +479,9 @@ grafana_options(){
 
 download_snapshot() {
     #setup Rclone
-    RCLONE_CONFIG_HEADER="[cloudflare-r2]"
-    RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
-    type = s3
-    provider = Cloudflare
-    access_key_id = c64bed98a85ccd3197169bf7363ce94f
-    secret_access_key = 0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7
-    region = auto
-    endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
-    acl = private
-    no_check_bucket = true
-    "
-    curl https://rclone.org/install.sh | sudo bash
+    if ! which rclone >/dev/null; then
+        curl https://rclone.org/install.sh | sudo bash
+    fi
     mkdir -p ~/.config/rclone/
     if ! grep "$RCLONE_CONFIG_HEADER" ~/.config/rclone/rclone.conf >/dev/null; then
         echo "$RCLONE_CONFIG" >> ~/.config/rclone/rclone.conf

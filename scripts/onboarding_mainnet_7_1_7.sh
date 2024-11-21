@@ -10,6 +10,18 @@ GITHUB_URL_SSH="git@github.com:Entropy-Foundation/supra-nodeops-data.git"
 GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf.sh"
 GRAFANA_CENTOS="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf-centos.sh"
 
+RCLONE_CONFIG_HEADER="[cloudflare-r2]"
+RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
+type = s3
+provider = Cloudflare
+access_key_id = c64bed98a85ccd3197169bf7363ce94f
+secret_access_key = 0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7
+region = auto
+endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
+acl = private
+no_check_bucket = true
+"
+
 create_folder_and_files() {
     touch $CONFIG_FILE
     if [ ! -d "$HOST_SUPRA_HOME" ]; then
@@ -964,18 +976,9 @@ setup_file_name() {
 }
 snapshot_download(){
  #setup Rclone
-    RCLONE_CONFIG_HEADER="[cloudflare-r2]"
-    RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
-    type = s3
-    provider = Cloudflare
-    access_key_id = c64bed98a85ccd3197169bf7363ce94f
-    secret_access_key = 0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7
-    region = auto
-    endpoint = https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com
-    acl = private
-    no_check_bucket = true
-    "
-    curl https://rclone.org/install.sh | sudo bash
+    if ! which rclone >/dev/null; then
+        curl https://rclone.org/install.sh | sudo bash
+    fi
     mkdir -p ~/.config/rclone/
     if ! grep "$RCLONE_CONFIG_HEADER" ~/.config/rclone/rclone.conf >/dev/null; then
         echo "$RCLONE_CONFIG" >> ~/.config/rclone/rclone.conf
