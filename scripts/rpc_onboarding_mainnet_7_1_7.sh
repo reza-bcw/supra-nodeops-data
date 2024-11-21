@@ -17,7 +17,7 @@ acl = private
 no_check_bucket = true
 "
 remove_old_files(){
-sudo rm -rf $HOST_SUPRA_HOME $CONFIG_FILE
+rm -rf $HOST_SUPRA_HOME $CONFIG_FILE
 }
 
 GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf.sh"
@@ -625,8 +625,8 @@ while true; do
             remove_old_files
             create_folder_and_files
             check_permissions "$HOST_SUPRA_HOME"
-            remove_docker
             configure_operator
+            remove_docker
             create_supra_container
             create_config_toml
             echo ""
