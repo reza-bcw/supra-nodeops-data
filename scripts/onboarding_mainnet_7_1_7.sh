@@ -10,7 +10,7 @@ GITHUB_URL_SSH="git@github.com:Entropy-Foundation/supra-nodeops-data.git"
 GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf.sh"
 GRAFANA_CENTOS="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf-centos.sh"
 
-RCLONE_CONFIG_HEADER="[cloudflare-r2-mainnet]"
+RCLONE_CONFIG_HEADER="\[cloudflare-r2-mainnet\]"
 RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
 type = s3
 provider = Cloudflare
