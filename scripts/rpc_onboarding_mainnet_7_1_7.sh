@@ -5,7 +5,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 HOST_SUPRA_HOME="$SCRIPT_DIR/supra_rpc_configs_mainnet"
 CONFIG_FILE="$SCRIPT_DIR/operator_rpc_config_mainnet.toml"
 
-RCLONE_CONFIG_HEADER="[cloudflare-r2]"
+RCLONE_CONFIG_HEADER="[cloudflare-r2-mainnet]"
 RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
 type = s3
 provider = Cloudflare
@@ -498,11 +498,11 @@ download_snapshot() {
     while [ $retry_count -lt $MAX_RETRIES ]; do
         # Run the rclone sync command, output to the console and log simultaneously
         echo "Running rclone sync attempt $((retry_count + 1)) at $(date)" | tee -a "$LOG_FILE"
-        rclone sync cloudflare-r2:mainnet/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive/" --progress | tee -a "$LOG_FILE"
+        rclone sync cloudflare-r2-mainnet:mainnet/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive/" --progress | tee -a "$LOG_FILE"
 
         # Check if the rclone command was successful
         if [ $? -eq 0 ]; then
-            rclone sync cloudflare-r2:mainnet/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive/" --progress | tee -a "$LOG_FILE"
+            rclone sync cloudflare-r2-mainnet:mainnet/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive/" --progress | tee -a "$LOG_FILE"
             echo "rclone sync completed successfully at $(date)" | tee -a "$LOG_FILE"
             break
         else
@@ -515,11 +515,11 @@ download_snapshot() {
     while [ $retry_count -lt $MAX_RETRIES ]; do
         # Run the rclone sync command, output to the console and log simultaneously
         echo "Running rclone sync attempt $((retry_count + 1)) at $(date)" | tee -a "$LOG_FILE"
-        rclone sync cloudflare-r2:mainnet/snapshots/store "$HOST_SUPRA_HOME/rpc_store/" --progress | tee -a "$LOG_FILE"
+        rclone sync cloudflare-r2-mainnet:mainnet/snapshots/store "$HOST_SUPRA_HOME/rpc_store/" --progress | tee -a "$LOG_FILE"
 
         # Check if the rclone command was successful
         if [ $? -eq 0 ]; then
-            rclone sync cloudflare-r2:mainnet/snapshots/store "$HOST_SUPRA_HOME/rpc_store/" --progress | tee -a "$LOG_FILE"
+            rclone sync cloudflare-r2-mainnet:mainnet/snapshots/store "$HOST_SUPRA_HOME/rpc_store/" --progress | tee -a "$LOG_FILE"
             echo "rclone sync completed successfully at $(date)" | tee -a "$LOG_FILE"
             break
         else
