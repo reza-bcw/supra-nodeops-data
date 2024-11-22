@@ -10,7 +10,7 @@ GITHUB_URL_SSH="git@github.com:Entropy-Foundation/supra-nodeops-data.git"
 GRAFANA="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf.sh"
 GRAFANA_CENTOS="https://raw.githubusercontent.com/Entropy-Foundation/supra-node-monitoring-tool/master/nodeops-monitoring-telegraf-centos.sh"
 
-RCLONE_CONFIG_HEADER="[cloudflare-r2-mainnet]"
+RCLONE_CONFIG_HEADER="[cloudflare-r2]"
 RCLONE_CONFIG="$RCLONE_CONFIG_HEADER
 type = s3
 provider = Cloudflare
@@ -980,7 +980,7 @@ snapshot_download(){
         curl https://rclone.org/install.sh | sudo bash
     fi
     mkdir -p ~/.config/rclone/
-    if ! grep '${RCLONE_CONFIG_HEADER}' ~/.config/rclone/rclone.conf >/dev/null; then
+    if ! grep "$RCLONE_CONFIG_HEADER" ~/.config/rclone/rclone.conf >/dev/null; then
         echo "$RCLONE_CONFIG" >> ~/.config/rclone/rclone.conf
     fi
 
@@ -997,11 +997,11 @@ snapshot_download(){
     while [ $retry_count -lt $MAX_RETRIES ]; do
         # Run the rclone sync command, output to the console and log simultaneously
         echo "Running rclone sync attempt $((retry_count + 1)) at $(date)" | tee -a "$LOG_FILE"
-        rclone sync cloudflare-r2-mainnet:mainnet/snapshots/store "$HOST_SUPRA_HOME/smr_storage/" --progress | tee -a "$LOG_FILE"
+        rclone sync cloudflare-r2:mainnet/snapshots/store "$HOST_SUPRA_HOME/smr_storage/" --progress | tee -a "$LOG_FILE"
 
         # Check if the rclone command was successful
         if [ $? -eq 0 ]; then
-            rclone sync cloudflare-r2-mainnet:mainnet/snapshots/store "$HOST_SUPRA_HOME/smr_storage/" --progress | tee -a "$LOG_FILE"
+            rclone sync cloudflare-r2:mainnet/snapshots/store "$HOST_SUPRA_HOME/smr_storage/" --progress | tee -a "$LOG_FILE"
             echo "rclone sync completed successfully at $(date)" | tee -a "$LOG_FILE"
             break
         else
