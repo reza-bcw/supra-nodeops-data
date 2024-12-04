@@ -1,6 +1,7 @@
 #!/bin/bash
 
-SCRIPT_EXECUTION_LOCATION="$(pwd)/supra_rpc_configs_mainnet"
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+HOST_SUPRA_HOME="$SCRIPT_DIR/supra_rpc_configs_mainnet"
 
 # Parse ip_address from operator_config.toml
 ip_address=$(grep 'ip_address' operator_rpc_config_mainnet.toml | awk -F'=' '{print $2}' | tr -d ' "')
@@ -61,7 +62,7 @@ binary_upgrade(){
     GROUP_ID=$(id -g)
 
     if !     docker run --name "supra_rpc_mainnet_$ip_address" \
-            -v $SCRIPT_EXECUTION_LOCATION:/supra/configs \
+            -v $HOST_SUPRA_HOME:/supra/configs \
             --user "$USER_ID:$GROUP_ID" \
             -e "SUPRA_HOME=/supra/configs" \
             -e "SUPRA_LOG_DIR=/supra/configs/rpc_node_logs" \
@@ -152,7 +153,7 @@ compare_block_heights() {
     api_block_height=$(echo "$api_result" | jq '.height')
     
     # Check the log file for the latest block height using regex to match the specific format
-    LOG_FILE="$SCRIPT_EXECUTION_LOCATION/rpc_node_logs/rpc_node.log"
+    LOG_FILE="$HOST_SUPRA_HOME/rpc_node_logs/rpc_node.log"
     if [[ ! -f "$LOG_FILE" ]]; then
         echo "Warn: Log file isn't present, Hence Starting the supra container with latest snapshot"
         snapshot_sync
@@ -190,8 +191,8 @@ compare_block_heights() {
 }
 
 start_node(){
-    docker cp $SCRIPT_EXECUTION_LOCATION/genesis.blob supra_rpc_mainnet_$ip_address:/supra/
-    docker cp $SCRIPT_EXECUTION_LOCATION/config.toml supra_rpc_mainnet_$ip_address:/supra/
+    docker cp $HOST_SUPRA_HOME/genesis.blob supra_rpc_mainnet_$ip_address:/supra/
+    docker cp $HOST_SUPRA_HOME/config.toml supra_rpc_mainnet_$ip_address:/supra/
 
     echo "Starting the RPC node......."
 
