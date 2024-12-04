@@ -197,7 +197,7 @@ start_node(){
     echo "Starting the RPC node......."
 
     /usr/bin/expect <<EOF
-    spawn docker exec -it supra_rpc_mainnet_$ip_address /supra/rpc_node
+    spawn docker exec -it supra_rpc_mainnet_$ip_address /supra/rpc_node start
     expect "Starting logger runtime"
     send "\r"
     expect eof
