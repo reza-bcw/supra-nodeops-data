@@ -14,6 +14,9 @@ if [ "$FUNCTION" == "setup" ]; then
         VALIDATOR_IP="$7"
     fi
 fi
+echo "Function: $FUNCTION"
+echo "NODE_TYPE: $NODE_TYPE"
+echo "NEW_IMAGE_VERSION="
 
 
 function basic_usage() {
@@ -546,11 +549,11 @@ function create_config_toml() {
 
 
 function download_rpc_static_configuration_files() {
-    local ca_certificate="$HOST_SUPRA_HOME/ca_certificate.pem"
-    local client_supra_certificate="$HOST_SUPRA_HOME/client_supra_certificate.pem"
-    local client_supra_key="$HOST_SUPRA_HOME/client_supra_key.pem"
-    local supra_committees="$HOST_SUPRA_HOME/supra_committees.json"
-    local genesis_blob="$HOST_SUPRA_HOME/genesis.blob"
+    export ca_certificate="./supra_configs/ca_certificate.pem"
+    export client_supra_certificate="./supra_configs/client_supra_certificate.pem"
+    export client_supra_key="./supra_configs/client_supra_key.pem"
+    export supra_committees="./supra_configs/supra_committees.json"
+    export genesis_blob="./supra_configs/genesis.blob"
 
     # Download the TLS certificates and keys.
     if ! [ -f "$ca_certificate" ]; then
@@ -576,47 +579,47 @@ function download_rpc_static_configuration_files() {
     
 }
 function download_validator_static_configuration_files() {
-    local ca_certificate="$HOST_SUPRA_HOME/ca_certificate.pem"
-    local client_supra_certificate="$HOST_SUPRA_HOME/server_supra_certificate.pem"
-    local client_supra_key="$HOST_SUPRA_HOME/server_supra_key.pem"
-    local supra_committees="$HOST_SUPRA_HOME/supra_committees.json"
-    local genesis_blob="$HOST_SUPRA_HOME/genesis.blob"
-    local smr_settings="$HOST_SUPRA_HOME/smr_settings.toml"
-    local genesis_configs="$HOST_SUPRA_HOME/genesis_configs.json"
-    local genesis_config_arbitrary_data="$HOST_SUPRA_HOME/genesis_config_arbitrary_data.json"
+    export ca_certificate="./supra_configs/ca_certificate.pem"
+    export client_supra_certificate="./supra_configs/server_supra_certificate.pem"
+    export client_supra_key="./supra_configs/server_supra_key.pem"
+    export supra_committees="./supra_configs/supra_committees.json"
+    export genesis_blob="./supra_configs/genesis.blob"
+    export smr_settings="./supra_configs/smr_settings.toml"
+    export genesis_configs="./supra_configs/genesis_configs.json"
+    export genesis_config_arbitrary_data="./supra_configs/genesis_config_arbitrary_data.json"
 
     # Download the TLS certificates and keys.
     if ! [ -f "$ca_certificate" ]; then
-        wget -nc -O "$ca_certificate" "https://${STATIC_SOURCE}.supra.com/certificates/ca_certificate.pem"
+        wget -nc -O "$ca_certificate" "https://mainnet-data.supra.com/certificates/ca_certificate.pem"
     fi
 
     if ! [ -f "$client_supra_certificate" ]; then
-        wget -nc -O "$client_supra_certificate" "https://${STATIC_SOURCE}.supra.com/certificates/server_supra_certificate.pem"
+        wget -nc -O "$client_supra_certificate" "https://mainnet-data.supra.com/certificates/server_supra_certificate.pem"
     fi
 
     if ! [ -f "$client_supra_key" ]; then
-        wget -nc -O "$client_supra_key" "https://${STATIC_SOURCE}.supra.com/certificates/server_supra_key.pem"
+        wget -nc -O "$client_supra_key" "https://mainnet-data.supra.com/certificates/server_supra_key.pem"
     fi
 
     # And the Genesis Blob and Genesis Committee files.
     if ! [ -f "$supra_committees" ]; then
-        wget -nc -O "$supra_committees" "https://${STATIC_SOURCE}.supra.com/configs/supra_committees.json"
+        wget -nc -O "$supra_committees" "https://mainnet-data.supra.com/configs/supra_committees.json"
     fi
 
     if ! [ -f "$genesis_blob" ]; then
-        wget -nc -O "$genesis_blob" "https://${STATIC_SOURCE}.supra.com/configs/genesis.blob"
+        wget -nc -O "$genesis_blob" "https://mainnet-data.supra.com/configs/genesis.blob"
     fi
     
     if ! [ -f "$smr_settings" ]; then
-        wget -nc -O "$smr_settings" "https://${STATIC_SOURCE}.supra.com/configs/smr_settings.toml"
+        wget -nc -O "$smr_settings" "https://mainnet-data.supra.com/configs/smr_settings.toml"
     fi
 
     if ! [ -f "$genesis_configs" ]; then
-        wget -nc -O "$genesis_configs" "https://${STATIC_SOURCE}.supra.com/configs/genesis_configs.json"
+        wget -nc -O "$genesis_configs" "https://mainnet-data.supra.com/configs/genesis_configs.json"
     fi
 
     if ! [ -f "$genesis_config_arbitrary_data" ]; then
-        wget -nc -O "$genesis_config_arbitrary_data" "https://${STATIC_SOURCE}.supra.com/configs/genesis_config_arbitrary_data.json"
+        wget -nc -O "$genesis_config_arbitrary_data" "https://mainnet-data.supra.com/configs/genesis_config_arbitrary_data.json"
     fi
 }
 
