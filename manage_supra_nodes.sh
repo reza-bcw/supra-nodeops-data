@@ -67,17 +67,17 @@ function echo_rpc_common_parameters() {
 
 function setup_usage() {
     if [ "$NODE_TYPE" == "validator" ]; then
-        echo "Usage: ./setup.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <sync_snapshot (optional)>" >&2
+        echo "Usage: ./setup.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> [sync_snapshot]" >&2
         echo_validator_common_parameters
     elif [ "$NODE_TYPE" == "rpc" ]; then
-        echo "Usage: ./setup.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip> <sync_snapshot (optional)>" >&2
+        echo "Usage: ./setup.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip> [sync_snapshot]" >&2
         echo_rpc_common_parameters
     fi
     exit 1
 }
 
 function update_usage() {
-    echo "Usage: ./setup.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <sync_snapshot>(optional)" >&2
+    echo "Usage: ./setup.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> [sync_snapshot]" >&2
     if [ "$NODE_TYPE" == "validator" ]; then
         echo_validator_common_parameters
     elif [ "$NODE_TYPE" == "rpc" ]; then
