@@ -9,8 +9,8 @@ source "$SCRIPT_DIR/.supra/node_management/utils.sh"
 
 set -e
 
-MAINNET_RCLONE_CONFIG_HEADER="[cloudflare-r2-mainnet]"
-MAINNET_RCLONE_CONFIG="$MAINNET_RCLONE_CONFIG_HEADER
+MAINNET_RCLONE_CONFIG_NAME="cloudflare-r2-mainnet"
+MAINNET_RCLONE_CONFIG="[$MAINNET_RCLONE_CONFIG_NAME]
 type = s3
 provider = Cloudflare
 access_key_id = c64bed98a85ccd3197169bf7363ce94f
@@ -154,8 +154,8 @@ description = "LocalNet"
 mode = "Server"
 '
 
-TESTNET_RCLONE_CONFIG_HEADER="[cloudflare-r2-testnet]"
-TESTNET_RCLONE_CONFIG="$TESTNET_RCLONE_CONFIG_HEADER
+TESTNET_RCLONE_CONFIG_NAME="cloudflare-r2-testnet"
+TESTNET_RCLONE_CONFIG="[$TESTNET_RCLONE_CONFIG_NAME]
 type = s3
 provider = Cloudflare
 access_key_id = 229502d7eedd0007640348c057869c90
@@ -286,6 +286,22 @@ description = "LocalNet"
 mode = "Server"
 '
 
+function is_setup() {
+    [[ "$FUNCTION" == "setup" ]]
+}
+
+function is_start() {
+    [[ "$FUNCTION" = "start" ]]
+}
+
+function is_sync() {
+    [[ "$FUNCTION" = "sync" ]]
+}
+
+function is_update() {
+    [[ "$FUNCTION" = "update" ]]
+}
+
 function parse_args() {
     FUNCTION="$1"
     NODE_TYPE="$2"
@@ -307,7 +323,7 @@ function parse_args() {
             ;;
     esac
 
-    if ([ "$FUNCTION" == "setup" ] || [ "$FUNCTION" == "update" ]) && [ "$NODE_TYPE" == "rpc" ]; then
+    if (is_setup || is_update) && is_rpc; then
         VALIDATOR_IP="$7"
     fi
 }
@@ -346,10 +362,10 @@ function rpc_common_parameters() {
 }
 
 function setup_usage() {
-    if [ "$NODE_TYPE" == "validator" ]; then
+    if is_validator; then
         echo "Usage: ./$SCRIPT_NAME.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
         validator_common_parameters
-    elif [ "$NODE_TYPE" == "rpc" ]; then
+    elif is_rpc; then
         echo "Usage: ./$SCRIPT_NAME.sh setup $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip>" >&2
         rpc_common_parameters
     else
@@ -360,10 +376,10 @@ function setup_usage() {
 }
 
 function update_usage() {
-    if [ "$NODE_TYPE" == "validator" ]; then
+    if is_validator; then
         echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network>" >&2
         validator_common_parameters
-    elif [ "$NODE_TYPE" == "rpc" ]; then
+    elif is_rpc; then
         echo "Usage: ./$SCRIPT_NAME.sh update $NODE_TYPE <image_version> <container_name> <host_supra_home> <network> <validator_ip>" >&2
         rpc_common_parameters
     else
@@ -393,8 +409,8 @@ function verify_setup_update_common_arguments() {
     is_semantic_version_id "$NEW_IMAGE_VERSION" \
     && verify_container_name \
     && verify_host_supra_home \
-    && verify_network \ 
-    || (["$NODE_TYPE" == "rpc" ] && ! is_ipv4_address "$VALIDATOR_IP")
+    && verify_network \
+    && (is_validator || is_ipv4_address "$VALIDATOR_IP")
 }
 
 function verify_setup() {
@@ -422,16 +438,16 @@ function verify_sync() {
 }
 
 function verify_args() {
-    if [ "$FUNCTION" == "setup" ]; then
+    if is_setup; then
         verify_setup
-    elif [ "$FUNCTION" == "update" ]; then
+    elif is_update; then
         verify_update
-    elif [ "$FUNCTION" == "start" ]; then
+    elif is_start; then
         verify_start
-    elif [ "$FUNCTION" == "sync" ]; then
+    elif is_sync; then
         verify_sync
     else
-        basic_usage "manage_supra_nodes" 
+        basic_usage
     fi
 }
 
@@ -544,7 +560,7 @@ function download_validator_static_configuration_files() {
         wget -nc -O "$genesis_configs" "https://${STATIC_SOURCE}.supra.com/configs/genesis_configs.json"
     fi
 
-    if ! [ -f "$genesis_config_arbitrary_data" ] && [ "$NETWORK" == "mainnet" ]; then
+    if ! [ -f "$genesis_config_arbitrary_data" ] && [[ "$NETWORK" == "mainnet" ]]; then
         wget -nc -O "$genesis_config_arbitrary_data" "https://${STATIC_SOURCE}.supra.com/configs/genesis_config_arbitrary_data.json"
     fi
 }
@@ -553,10 +569,10 @@ function setup() {
     echo "Setting up a new $NODE_TYPE node..."
     ensure_supra_home_is_absolute_path
 
-    if [ "$NODE_TYPE" == "validator" ]; then
+    if is_validator; then
         start_validator_docker_container
         download_validator_static_configuration_files
-    elif [ "$NODE_TYPE" == "rpc" ]; then
+    elif is_rpc; then
         start_rpc_docker_container
         create_config_toml
         download_rpc_static_configuration_files
@@ -588,6 +604,14 @@ function create_config_toml() {
 function update_config_toml() {
     local config_toml="$HOST_SUPRA_HOME"/config.toml
     local backup="$config_toml".old
+
+    # Ensure that the settings file already exits. The user is expected to run `setup` before `update`.
+    # If they have done this, then they must have set `HOST_SUPRA_HOME` incorrectly.
+    if ! [ -f "$config_toml" ]; then
+        epoch "$config_toml does not exist. Please ensure that you have set <host_supra_home> correctly." >&2
+        exit 3
+    fi
+
     # Create a backup of the existing node settings file in case the operator wants to copy custom
     # settings from it.
     mv "$config_toml" "$backup"
@@ -598,6 +622,14 @@ function update_config_toml() {
 function update_smr_settings_toml() {
     local smr_settings="$HOST_SUPRA_HOME"/smr_settings.toml
     local backup="$smr_settings".old
+
+    # Ensure that the settings file already exits. The user is expected to run `setup` before `update`.
+    # If they have done this, then they must have set `HOST_SUPRA_HOME` incorrectly.
+    if ! [ -f "$smr_settings" ]; then
+        epoch "$smr_settings does not exist. Please ensure that you have set <host_supra_home> correctly." >&2
+        exit 3
+    fi
+
     # Create a backup of the existing node settings file in case the operator wants to copy custom
     # settings from it.
     mv "$smr_settings" "$backup"
@@ -608,12 +640,13 @@ function update_smr_settings_toml() {
 function maybe_update_container() {
     local current_image="$(current_docker_image)"
 
-    if [ -z "$current_image" ]; then
+    if [[ "$current_image" == "null" ]]; then
         echo "Could not find a Supra $NODE_TYPE container called $CONTAINER_NAME. Please use the 'setup' function to create it." >&2
         exit 2
     fi
 
     if [[ "$current_image" == "$DOCKER_IMAGE" ]]; then
+        echo "Node is already at $NEW_IMAGE_VERSION." >&2
         return
     fi
 
@@ -622,7 +655,7 @@ function maybe_update_container() {
     remove_old_docker_container
     remove_old_docker_image "$current_image"
 
-    if [ "$NODE_TYPE" == "validator" ]; then
+    if is_validator; then
         start_validator_docker_container
         update_smr_settings_toml
     else
@@ -669,9 +702,9 @@ EOF
 }
 
 function start() {
-    if [ "$NODE_TYPE" == "validator" ]; then
+    if is_validator; then
         start_validator_node
-    elif [ "$NODE_TYPE" == "rpc" ]; then
+    elif is_rpc; then
         start_rpc_node
     fi
 }
@@ -689,9 +722,9 @@ function sync() {
         echo "$RCLONE_CONFIG" >> ~/.config/rclone/rclone.conf
     fi
 
-    if [ "$NODE_TYPE" == "validator" ]; then
+    if is_validator; then
         rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/store" "$HOST_SUPRA_HOME/smr_storage/"
-    elif [ "$NODE_TYPE" == "rpc" ]; then
+    elif is_rpc; then
         rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/store" "$HOST_SUPRA_HOME/rpc_store/"
         rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/archive" "$HOST_SUPRA_HOME/rpc_archive/"
     fi
@@ -705,27 +738,27 @@ function main() {
 
     DOCKER_IMAGE="asia-docker.pkg.dev/supra-devnet-misc/supra-${NETWORK}/${NODE_TYPE}-node:${NEW_IMAGE_VERSION}"
 
-    if [ "$NETWORK" = "mainnet" ]; then
+    if [[ "$NETWORK" == "mainnet" ]]; then
         RCLONE_CONFIG="$MAINNET_RCLONE_CONFIG"
-        RCLONE_CONFIG_HEADER="$MAINNET_RCLONE_CONFIG_HEADER"
+        RCLONE_CONFIG_HEADER="$MAINNET_RCLONE_CONFIG_NAME"
         RPC_CONFIG_TOML="$MAINNET_RPC_CONFIG_TOML"
         SNAPSHOT_ROOT="mainnet"
         STATIC_SOURCE="mainnet-data"
     else
         RCLONE_CONFIG="$TESTNET_RCLONE_CONFIG"
-        RCLONE_CONFIG_HEADER="$TESTNET_RCLONE_CONFIG_HEADER"
+        RCLONE_CONFIG_HEADER="$TESTNET_RCLONE_CONFIG_NAME"
         RPC_CONFIG_TOML="$TESTNET_RPC_CONFIG_TOML"
         SNAPSHOT_ROOT="testnet-snapshot"
         STATIC_SOURCE="testnet-snapshot"
     fi
 
-    if [ "$FUNCTION" == "setup" ]; then
+    if is_setup; then
         setup
-    elif [ "$FUNCTION" == "update" ]; then
+    elif is_update; then
         update
-    elif [ "$FUNCTION" == "start" ]; then
+    elif is_start; then
         start
-    elif [ "$FUNCTION" == "sync" ]; then
+    elif is_sync; then
         sync
     fi
 }

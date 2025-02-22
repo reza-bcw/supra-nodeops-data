@@ -32,6 +32,14 @@ function is_semantic_version_id() {
     [[ "$id" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
 }
 
+function is_rpc() {
+    [[ "$NODE_TYPE" == "rpc" ]]
+}
+
+function is_validator() {
+    [[ "$NODE_TYPE" == "validator" ]]
+}
+
 function verify_container_name() {
     [ -n "$CONTAINER_NAME" ]
 }
