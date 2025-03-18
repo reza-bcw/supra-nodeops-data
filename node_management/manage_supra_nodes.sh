@@ -759,6 +759,8 @@ EOF
     local ENDPOINT_URL="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
 
     if is_validator; then
+        # Create the local directory if it doesn't exist
+        mkdir -p "$HOST_SUPRA_HOME/smr_storage"
         # List snapshot filenames from the "store" directory and save them in smr_storage
         aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/smr_storage/snapshot_parts.txt"
         
@@ -767,6 +769,9 @@ EOF
           xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/store/{}\" \"$HOST_SUPRA_HOME/smr_storage/{}\" --endpoint-url \"$ENDPOINT_URL\""
         
     elif is_rpc; then
+        # Create the local directories if they don't exist
+        mkdir -p "$HOST_SUPRA_HOME/rpc_store"
+        mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
         # List snapshot filenames for the store and archive directories separately
         aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_store/snapshot_parts.txt"
         aws s3 ls "s3://${BUCKET_NAME}/snapshots/archive/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_archive/snapshot_parts.txt"
