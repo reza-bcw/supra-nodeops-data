@@ -711,22 +711,72 @@ function start() {
 
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
+# Helper function to install AWS CLI v2 if not already installed
+function install_aws_cli() {
+    if ! which aws >/dev/null; then
+        echo "AWS CLI not found, installing..."
+        if ! which unzip >/dev/null; then
+            echo "unzip not found. Installing unzip..."
+            sudo apt-get update && sudo apt-get install -y unzip
+        fi
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+        rm -rf aws awscliv2.zip
+    fi
+}
+
 function sync() {
-    if ! which rclone >/dev/null; then
-        curl https://rclone.org/install.sh | sudo bash
+    # Install AWS CLI if not installed
+    install_aws_cli
+
+    # Ensure AWS CLI configuration is set up properly
+    mkdir -p ~/.aws
+    if [ ! -f ~/.aws/config ]; then
+        cat <<EOF > ~/.aws/config
+[default]
+region = auto
+output = json
+s3 =
+    max_concurrent_requests = 1000
+    multipart_threshold = 512MB
+    multipart_chunksize = 256MB
+EOF
     fi
 
-    mkdir -p ~/.config/rclone/
-
-    if ! grep "$RCLONE_CONFIG_HEADER" ~/.config/rclone/rclone.conf >/dev/null; then
-        echo "$RCLONE_CONFIG" >> ~/.config/rclone/rclone.conf
+    # Set AWS CLI credentials and bucket name based on the selected network
+    if [ "$NETWORK" == "mainnet" ]; then
+        export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
+        export AWS_SECRET_ACCESS_KEY="0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7"
+        BUCKET_NAME="mainnet"
+    elif [ "$NETWORK" == "testnet" ]; then
+        export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
+        export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
+        BUCKET_NAME="testnet-snapshot"
     fi
+
+    # Define the custom endpoint for Cloudflare R2
+    local ENDPOINT_URL="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
 
     if is_validator; then
-        rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/store" "$HOST_SUPRA_HOME/smr_storage/"
+        # List snapshot filenames from the "store" directory and save them in smr_storage
+        aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/smr_storage/snapshot_parts.txt"
+        
+        # Download store snapshots concurrently
+        cat "$HOST_SUPRA_HOME/smr_storage/snapshot_parts.txt" | \
+          xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/store/{}\" \"$HOST_SUPRA_HOME/smr_storage/{}\" --endpoint-url \"$ENDPOINT_URL\""
+        
     elif is_rpc; then
-        rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/store" "$HOST_SUPRA_HOME/rpc_store/"
-        rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/archive" "$HOST_SUPRA_HOME/rpc_archive/"
+        # List snapshot filenames for the store and archive directories separately
+        aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_store/snapshot_parts.txt"
+        aws s3 ls "s3://${BUCKET_NAME}/snapshots/archive/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_archive/snapshot_parts.txt"
+
+        # Run the two download commands concurrently in the background
+        cat "$HOST_SUPRA_HOME/rpc_store/snapshot_parts.txt" | \
+          xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/store/{}\" \"$HOST_SUPRA_HOME/rpc_store/{}\" --endpoint-url \"$ENDPOINT_URL\"" &
+        cat "$HOST_SUPRA_HOME/rpc_archive/snapshot_parts.txt" | \
+          xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/archive/{}\" \"$HOST_SUPRA_HOME/rpc_archive/{}\" --endpoint-url \"$ENDPOINT_URL\"" &
+        wait
     fi
 }
 
