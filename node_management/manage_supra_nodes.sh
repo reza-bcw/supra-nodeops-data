@@ -759,6 +759,7 @@ EOF
     local ENDPOINT_URL="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
 
     if is_validator; then
+        START_TIME=$(date +%s)
         # Create the local directory if it doesn't exist
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
         # List snapshot filenames from the "store" directory and save them in smr_storage
@@ -767,8 +768,14 @@ EOF
         # Download store snapshots concurrently
         cat "$HOST_SUPRA_HOME/smr_storage/snapshot_parts.txt" | \
           xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/store/{}\" \"$HOST_SUPRA_HOME/smr_storage/{}\" --endpoint-url \"$ENDPOINT_URL\""
+
+        END_TIME=$(date +%s)
+        TOTAL_TIME=$((END_TIME - START_TIME))
+        echo "Total Download Time: $TOTAL_TIME seconds"
         
     elif is_rpc; then
+        START_TIME=$(date +%s)
+        
         # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
@@ -782,6 +789,10 @@ EOF
         cat "$HOST_SUPRA_HOME/rpc_archive/snapshot_parts.txt" | \
           xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/archive/{}\" \"$HOST_SUPRA_HOME/rpc_archive/{}\" --endpoint-url \"$ENDPOINT_URL\"" &
         wait
+
+        END_TIME=$(date +%s)
+        TOTAL_TIME=$((END_TIME - START_TIME))
+        echo "Total Download Time: $TOTAL_TIME seconds"
     fi
 }
 
