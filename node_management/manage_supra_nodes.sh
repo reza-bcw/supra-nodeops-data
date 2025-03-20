@@ -749,10 +749,32 @@ EOF
         export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
         export AWS_SECRET_ACCESS_KEY="0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7"
         BUCKET_NAME="mainnet"
+        export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
+        export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
+
+        # Temporary increase (for this session)
+        ulimit -n 65535
+
+        # To make it permanent (for future sessions)
+        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf
+        sudo sysctl -p
+        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
+        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
     elif [ "$NETWORK" == "testnet" ]; then
         export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
         export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
         BUCKET_NAME="testnet-snapshot"
+        export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
+        export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
+
+        # Temporary increase (for this session)
+        ulimit -n 65535
+
+        # To make it permanent (for future sessions)
+        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf
+        sudo sysctl -p
+        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
+        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
     fi
 
     # Define the custom endpoint for Cloudflare R2
@@ -763,11 +785,12 @@ EOF
         # Create the local directory if it doesn't exist
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
         # List snapshot filenames from the "store" directory and save them in smr_storage
-        aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/smr_storage/snapshot_parts.txt"
+        # aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/smr_storage/snapshot_parts.txt"
         
         # Download store snapshots concurrently
-        cat "$HOST_SUPRA_HOME/smr_storage/snapshot_parts.txt" | \
-          xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/store/{}\" \"$HOST_SUPRA_HOME/smr_storage/{}\" --endpoint-url \"$ENDPOINT_URL\""
+        aws s3 sync s3://${BUCKET_NAME}/snapshots/store/ $HOST_SUPRA_HOME/smr_storage/ \
+        --endpoint-url https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com \
+        --size-only \
 
         END_TIME=$(date +%s)
         TOTAL_TIME=$((END_TIME - START_TIME))
@@ -775,19 +798,21 @@ EOF
         
     elif is_rpc; then
         START_TIME=$(date +%s)
-        
+
         # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
         # List snapshot filenames for the store and archive directories separately
-        aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_store/snapshot_parts.txt"
-        aws s3 ls "s3://${BUCKET_NAME}/snapshots/archive/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_archive/snapshot_parts.txt"
+        #aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_store/snapshot_parts.txt"
+        #aws s3 ls "s3://${BUCKET_NAME}/snapshots/archive/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_archive/snapshot_parts.txt"
 
         # Run the two download commands concurrently in the background
-        cat "$HOST_SUPRA_HOME/rpc_store/snapshot_parts.txt" | \
-          xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/store/{}\" \"$HOST_SUPRA_HOME/rpc_store/{}\" --endpoint-url \"$ENDPOINT_URL\"" &
-        cat "$HOST_SUPRA_HOME/rpc_archive/snapshot_parts.txt" | \
-          xargs -I {} -P 350 sh -c "aws s3 cp \"s3://${BUCKET_NAME}/snapshots/archive/{}\" \"$HOST_SUPRA_HOME/rpc_archive/{}\" --endpoint-url \"$ENDPOINT_URL\"" &
+        aws s3 sync s3://${BUCKET_NAME}/snapshots/store/ $HOST_SUPRA_HOME/rpc_store/ \
+        --endpoint-url https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com \
+        --size-only &
+        aws s3 sync s3://${BUCKET_NAME}/snapshots/archive/ $HOST_SUPRA_HOME/rpc_archive/ \
+        --endpoint-url https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com \
+        --size-only &
         wait
 
         END_TIME=$(date +%s)
