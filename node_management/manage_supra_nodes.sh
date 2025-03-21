@@ -767,7 +767,7 @@ EOF
         
         # Download store snapshots concurrently
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" \
-                --endpoint-url $ENDPOINT_URL \
+                --endpoint-url "$ENDPOINT_URL" \
                 --size-only
     elif is_rpc; then
         # Create the local directories if they don't exist
@@ -776,10 +776,10 @@ EOF
 
         # Run the two download commands concurrently in the background
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" \
-                --endpoint-url $ENDPOINT_URL \
+                --endpoint-url "$ENDPOINT_URL" \
                 --size-only &
         aws s3 sync "s3://${BUCKET_NAME}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" \
-                --endpoint-url $ENDPOINT_URL \
+                --endpoint-url "$ENDPOINT_URL" \
                 --size-only &
         wait
     fi
