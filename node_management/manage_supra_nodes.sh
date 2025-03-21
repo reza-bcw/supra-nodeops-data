@@ -711,21 +711,6 @@ function start() {
 
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
-# Helper function to install AWS CLI v2 if not already installed
-function install_aws_cli() {
-    if ! which aws >/dev/null; then
-        echo "AWS CLI not found, installing..."
-        if ! which unzip >/dev/null; then
-            echo "unzip not found. Installing unzip..."
-            sudo apt-get update && sudo apt-get install -y unzip
-        fi
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-        rm -rf aws awscliv2.zip
-    fi
-}
-
 function sync() {
     # Install AWS CLI if not installed
     install_aws_cli
@@ -744,37 +729,43 @@ s3 =
 EOF
     fi
 
+    # Increase max open files limit only if not already set
+    if ! grep -q "^fs.file-max = 2097152" /etc/sysctl.conf; then
+        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf
+        sudo sysctl -p
+    else
+        echo "fs.file-max is already set."
+    fi
+
+    # Update soft and hard nofile limits only if not already set
+    if ! grep -q "^\* soft nofile 65535" /etc/security/limits.conf; then
+        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
+    else
+        echo "Soft nofile limit is already set."
+    fi
+
+    if ! grep -q "^\* hard nofile 65535" /etc/security/limits.conf; then
+        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
+    else
+        echo "Hard nofile limit is already set."
+    fi
+
+    export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
+    export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
+    
+    # Temporary increase (for this session)
+    ulimit -n 65535
+
     # Set AWS CLI credentials and bucket name based on the selected network
     if [ "$NETWORK" == "mainnet" ]; then
         export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
         export AWS_SECRET_ACCESS_KEY="0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7"
         BUCKET_NAME="mainnet"
-        export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
-        export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
 
-        # Temporary increase (for this session)
-        ulimit -n 65535
-
-        # To make it permanent (for future sessions)
-        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf
-        sudo sysctl -p
-        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
-        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
     elif [ "$NETWORK" == "testnet" ]; then
         export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
         export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
         BUCKET_NAME="testnet-snapshot"
-        export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
-        export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
-
-        # Temporary increase (for this session)
-        ulimit -n 65535
-
-        # To make it permanent (for future sessions)
-        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf
-        sudo sysctl -p
-        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
-        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
     fi
 
     # Define the custom endpoint for Cloudflare R2
@@ -784,12 +775,10 @@ EOF
         START_TIME=$(date +%s)
         # Create the local directory if it doesn't exist
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
-        # List snapshot filenames from the "store" directory and save them in smr_storage
-        # aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/smr_storage/snapshot_parts.txt"
         
         # Download store snapshots concurrently
         aws s3 sync s3://${BUCKET_NAME}/snapshots/store/ $HOST_SUPRA_HOME/smr_storage/ \
-        --endpoint-url https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com \
+        --endpoint-url $ENDPOINT_URL \
         --size-only \
 
         END_TIME=$(date +%s)
@@ -802,16 +791,13 @@ EOF
         # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
-        # List snapshot filenames for the store and archive directories separately
-        #aws s3 ls "s3://${BUCKET_NAME}/snapshots/store/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_store/snapshot_parts.txt"
-        #aws s3 ls "s3://${BUCKET_NAME}/snapshots/archive/" --endpoint-url "$ENDPOINT_URL" | awk '{print $4}' > "$HOST_SUPRA_HOME/rpc_archive/snapshot_parts.txt"
 
         # Run the two download commands concurrently in the background
         aws s3 sync s3://${BUCKET_NAME}/snapshots/store/ $HOST_SUPRA_HOME/rpc_store/ \
-        --endpoint-url https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com \
+        --endpoint-url $ENDPOINT_URL \
         --size-only &
         aws s3 sync s3://${BUCKET_NAME}/snapshots/archive/ $HOST_SUPRA_HOME/rpc_archive/ \
-        --endpoint-url https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com \
+        --endpoint-url $ENDPOINT_URL \
         --size-only &
         wait
 
