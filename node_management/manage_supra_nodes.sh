@@ -733,21 +733,15 @@ EOF
     if ! grep -q "^fs.file-max = 2097152" /etc/sysctl.conf; then
         echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf > /dev/null
         sudo sysctl -p > /dev/null
-    else
-        echo "fs.file-max is already set."
     fi
 
     # Update soft and hard nofile limits only if not already set
     if ! grep -q "^\* soft nofile 65535" /etc/security/limits.conf; then
         echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf > /dev/null
-    else
-        echo "Soft nofile limit is already set."
     fi
 
     if ! grep -q "^\* hard nofile 65535" /etc/security/limits.conf; then
         echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf > /dev/null
-    else
-        echo "Hard nofile limit is already set."
     fi
     
     # Temporary increase (for this session)
@@ -758,7 +752,6 @@ EOF
         export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
         export AWS_SECRET_ACCESS_KEY="0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7"
         BUCKET_NAME="mainnet"
-
     elif [ "$NETWORK" == "testnet" ]; then
         export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
         export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
@@ -768,35 +761,28 @@ EOF
     # Define the custom endpoint for Cloudflare R2
     local ENDPOINT_URL="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
 
-    START_TIME=$(date +%s)
-
     if is_validator; then
         # Create the local directory if it doesn't exist
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
         
         # Download store snapshots concurrently
-        aws s3 sync s3://${BUCKET_NAME}/snapshots/store/ $HOST_SUPRA_HOME/smr_storage/ \
+        aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" \
                 --endpoint-url $ENDPOINT_URL \
-                --size-only \
-        
+                --size-only
     elif is_rpc; then
         # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
 
         # Run the two download commands concurrently in the background
-        aws s3 sync s3://${BUCKET_NAME}/snapshots/store/ $HOST_SUPRA_HOME/rpc_store/ \
+        aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" \
                 --endpoint-url $ENDPOINT_URL \
                 --size-only &
-        aws s3 sync s3://${BUCKET_NAME}/snapshots/archive/ $HOST_SUPRA_HOME/rpc_archive/ \
+        aws s3 sync "s3://${BUCKET_NAME}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" \
                 --endpoint-url $ENDPOINT_URL \
                 --size-only &
         wait
     fi
-
-    END_TIME=$(date +%s)
-    TOTAL_TIME=$((END_TIME - START_TIME))
-    echo "Total Download Time: $TOTAL_TIME seconds"
 }
 
 #---------------------------------------------------------- Main ----------------------------------------------------------
