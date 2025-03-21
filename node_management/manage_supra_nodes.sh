@@ -749,9 +749,6 @@ EOF
     else
         echo "Hard nofile limit is already set."
     fi
-
-    export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
-    export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
     
     # Temporary increase (for this session)
     ulimit -n 65535
