@@ -731,21 +731,21 @@ EOF
 
     # Increase max open files limit only if not already set
     if ! grep -q "^fs.file-max = 2097152" /etc/sysctl.conf; then
-        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf
-        sudo sysctl -p
+        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf > /dev/null
+        sudo sysctl -p > /dev/null
     else
         echo "fs.file-max is already set."
     fi
 
     # Update soft and hard nofile limits only if not already set
     if ! grep -q "^\* soft nofile 65535" /etc/security/limits.conf; then
-        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf
+        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf > /dev/null
     else
         echo "Soft nofile limit is already set."
     fi
 
     if ! grep -q "^\* hard nofile 65535" /etc/security/limits.conf; then
-        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf
+        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf > /dev/null
     else
         echo "Hard nofile limit is already set."
     fi
@@ -771,40 +771,35 @@ EOF
     # Define the custom endpoint for Cloudflare R2
     local ENDPOINT_URL="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
 
+    START_TIME=$(date +%s)
+
     if is_validator; then
-        START_TIME=$(date +%s)
         # Create the local directory if it doesn't exist
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
         
         # Download store snapshots concurrently
         aws s3 sync s3://${BUCKET_NAME}/snapshots/store/ $HOST_SUPRA_HOME/smr_storage/ \
-        --endpoint-url $ENDPOINT_URL \
-        --size-only \
-
-        END_TIME=$(date +%s)
-        TOTAL_TIME=$((END_TIME - START_TIME))
-        echo "Total Download Time: $TOTAL_TIME seconds"
+                --endpoint-url $ENDPOINT_URL \
+                --size-only \
         
     elif is_rpc; then
-        START_TIME=$(date +%s)
-
         # Create the local directories if they don't exist
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
 
         # Run the two download commands concurrently in the background
         aws s3 sync s3://${BUCKET_NAME}/snapshots/store/ $HOST_SUPRA_HOME/rpc_store/ \
-        --endpoint-url $ENDPOINT_URL \
-        --size-only &
+                --endpoint-url $ENDPOINT_URL \
+                --size-only &
         aws s3 sync s3://${BUCKET_NAME}/snapshots/archive/ $HOST_SUPRA_HOME/rpc_archive/ \
-        --endpoint-url $ENDPOINT_URL \
-        --size-only &
+                --endpoint-url $ENDPOINT_URL \
+                --size-only &
         wait
-
-        END_TIME=$(date +%s)
-        TOTAL_TIME=$((END_TIME - START_TIME))
-        echo "Total Download Time: $TOTAL_TIME seconds"
     fi
+
+    END_TIME=$(date +%s)
+    TOTAL_TIME=$((END_TIME - START_TIME))
+    echo "Total Download Time: $TOTAL_TIME seconds"
 }
 
 #---------------------------------------------------------- Main ----------------------------------------------------------
