@@ -78,3 +78,22 @@ function prompt_for_cli_password() {
         read -r -s -p "Enter the password for your CLI profile: " CLI_PASSWORD
     done
 }
+
+# Helper function to install AWS CLI v2 if not already installed
+function install_aws_cli() {
+    
+    export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
+    export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
+
+    if ! which aws >/dev/null; then
+        echo "AWS CLI not found, installing..."
+        if ! which unzip >/dev/null; then
+            echo "unzip not found. Installing unzip..."
+            sudo apt-get update && sudo apt-get install -y unzip
+        fi
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+        rm -rf aws awscliv2.zip
+    fi
+}

@@ -712,21 +712,76 @@ function start() {
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
 function sync() {
-    if ! which rclone >/dev/null; then
-        curl https://rclone.org/install.sh | sudo bash
+    # Install AWS CLI if not installed
+    install_aws_cli
+
+    # Ensure AWS CLI configuration is set up properly
+    mkdir -p ~/.aws
+    if [ ! -f ~/.aws/config ]; then
+        cat <<EOF > ~/.aws/config
+[default]
+region = auto
+output = json
+s3 =
+    max_concurrent_requests = 1000
+    multipart_threshold = 512MB
+    multipart_chunksize = 256MB
+EOF
     fi
 
-    mkdir -p ~/.config/rclone/
-
-    if ! grep "$RCLONE_CONFIG_HEADER" ~/.config/rclone/rclone.conf >/dev/null; then
-        echo "$RCLONE_CONFIG" >> ~/.config/rclone/rclone.conf
+    # Increase max open files limit only if not already set
+    if ! grep -q "^fs.file-max = 2097152" /etc/sysctl.conf; then
+        echo "fs.file-max = 2097152" | sudo tee -a /etc/sysctl.conf > /dev/null
+        sudo sysctl -p > /dev/null
     fi
+
+    # Update soft and hard nofile limits only if not already set
+    if ! grep -q "^\* soft nofile 65535" /etc/security/limits.conf; then
+        echo "* soft nofile 65535" | sudo tee -a /etc/security/limits.conf > /dev/null
+    fi
+
+    if ! grep -q "^\* hard nofile 65535" /etc/security/limits.conf; then
+        echo "* hard nofile 65535" | sudo tee -a /etc/security/limits.conf > /dev/null
+    fi
+    
+    # Temporary increase (for this session)
+    ulimit -n 65535
+
+    # Set AWS CLI credentials and bucket name based on the selected network
+    if [ "$NETWORK" == "mainnet" ]; then
+        export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
+        export AWS_SECRET_ACCESS_KEY="0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7"
+        BUCKET_NAME="mainnet"
+    elif [ "$NETWORK" == "testnet" ]; then
+        export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
+        export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
+        BUCKET_NAME="testnet-snapshot"
+    fi
+
+    # Define the custom endpoint for Cloudflare R2
+    local ENDPOINT_URL="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
 
     if is_validator; then
-        rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/store" "$HOST_SUPRA_HOME/smr_storage/"
+        # Create the local directory if it doesn't exist
+        mkdir -p "$HOST_SUPRA_HOME/smr_storage"
+        
+        # Download store snapshots concurrently
+        aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" \
+                --endpoint-url "$ENDPOINT_URL" \
+                --size-only
     elif is_rpc; then
-        rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/store" "$HOST_SUPRA_HOME/rpc_store/"
-        rclone sync --checkers=32 --progress "cloudflare-r2-${NETWORK}:${SNAPSHOT_ROOT}/snapshots/archive" "$HOST_SUPRA_HOME/rpc_archive/"
+        # Create the local directories if they don't exist
+        mkdir -p "$HOST_SUPRA_HOME/rpc_store"
+        mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
+
+        # Run the two download commands concurrently in the background
+        aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" \
+                --endpoint-url "$ENDPOINT_URL" \
+                --size-only &
+        aws s3 sync "s3://${BUCKET_NAME}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" \
+                --endpoint-url "$ENDPOINT_URL" \
+                --size-only &
+        wait
     fi
 }
 
