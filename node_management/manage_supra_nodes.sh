@@ -389,6 +389,13 @@ function download_validator_static_configuration_files() {
         wget -nc -O "$genesis_config_arbitrary_data" "https://${STATIC_SOURCE}.supra.com/configs/genesis_config_arbitrary_data.json"
     fi
 }
+function update_validator_in_config_toml() {
+    local config_toml="$HOST_SUPRA_HOME/config.toml"
+
+    if ! [ -f "$config_toml" ]; then
+        echo "$RPC_CONFIG_TOML" | sed "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" > "$config_toml"
+    fi
+}
 
 function setup() {
     echo "Setting up a new $NODE_TYPE node..."
@@ -400,8 +407,8 @@ function setup() {
         download_validator_static_configuration_files
     elif is_rpc; then
         start_rpc_docker_container
-        create_config_toml
         download_rpc_static_configuration_files
+        update_validator_in_config_toml
     fi
 
     echo "$NODE_TYPE node setup completed."
@@ -419,13 +426,7 @@ function remove_old_docker_image() {
     docker rmi "$old_image" &>/dev/null
 }
 
-function create_config_toml() {
-    local config_toml="$HOST_SUPRA_HOME/config.toml"
 
-    if ! [ -f "$config_toml" ]; then
-        echo "$RPC_CONFIG_TOML" | sed "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" > "$config_toml"
-    fi
-}
 
 function update_config_toml() {
     local config_toml="$HOST_SUPRA_HOME"/config.toml
@@ -441,7 +442,7 @@ function update_config_toml() {
     # Create a backup of the existing node settings file in case the operator wants to copy custom
     # settings from it.
     mv "$config_toml" "$backup"
-    create_config_toml
+    download_rpc_static_configuration_files
     echo "Moved $config_toml to $backup. You will need to re-apply any custom config to the new version of the file."
 }
 
@@ -495,6 +496,7 @@ function maybe_update_container() {
 function update() {
     ensure_supra_home_is_absolute_path
     maybe_update_container
+    update_validator_in_config_toml
 }
 
 #---------------------------------------------------------- Start ----------------------------------------------------------
@@ -565,7 +567,11 @@ EOF
     elif [ "$NETWORK" == "testnet" ]; then
         export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
         export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
-        BUCKET_NAME="testnet-snapshot"
+        if is_validator; then
+            BUCKET_NAME="testnet-validator-snapshot"
+        elif is_rpc; then
+            BUCKET_NAME="testnet-snapshot"
+        fi
     fi
 
     # Define the custom endpoint for Cloudflare R2
