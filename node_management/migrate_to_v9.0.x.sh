@@ -68,7 +68,7 @@ function verify_args() {
 #---------------------------------------------------------- RPC ----------------------------------------------------------
 
 function migrate_rpc_database() {
-    docker exec -it "$CONTAINER_NAME" /supra/rpc_node migrate-db ./configs/config.toml 
+    docker exec -it "$CONTAINER_NAME" /supra/rpc_node migrate-db --max-buffer-record-count 100000 ./configs/config.toml 
 }
 
 function migrate_rpc() {
@@ -81,7 +81,7 @@ function migrate_rpc() {
 
 function migrate_validator_database() {
     echo "Migrating the Validator Database"
-    docker exec -it "$CONTAINER_NAME" /supra/supra data migrate -p ./configs/smr_settings.toml
+    docker exec -it "$CONTAINER_NAME" /supra/supra data migrate --max-buffer-record-count 100000 -p ./configs/smr_settings.toml
     echo "Migration Complete."
 }
 
