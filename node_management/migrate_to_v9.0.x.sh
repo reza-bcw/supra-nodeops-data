@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 SCRIPT_NAME="migrate_to_v9.0.x"
 
 # This script is expected to be installed with `install_management_scripts.sh`, which
@@ -12,11 +12,9 @@ function parse_args() {
     CONTAINER_NAME="$2"
     HOST_SUPRA_HOME="$3"
 
-    case "$NODE_TYPE" in
-        validator)
-            NETWORK="$4"
-            ;;
-    esac
+    if [ "$NODE_TYPE" = "rpc" ]; then
+        VALIDATOR_IP="$4"
+    fi
 }
 
 function basic_usage() {
@@ -28,18 +26,19 @@ function basic_usage() {
 }
 
 function rpc_usage() {
-    echo "Usage: ./$SCRIPT_NAME.sh rpc <container_name> <host_supra_home>" >&2
+    echo "Usage: ./$SCRIPT_NAME.sh rpc <container_name> <host_supra_home> <validator_ip>" >&2
     echo "Parameters:" >&2
     container_name_usage
+    host_supra_home_usage
+    validator_ip_usage
     exit 1
 }
 
 function validator_usage() {
-    echo "Usage: ./$SCRIPT_NAME.sh validator <container_name> <host_supra_home> <network>" >&2
+    echo "Usage: ./$SCRIPT_NAME.sh validator <container_name> <host_supra_home>" >&2
     echo "Parameters:" >&2
     container_name_usage
     host_supra_home_usage
-    network_usage
     exit 1
 }
 
@@ -50,7 +49,7 @@ function verify_rpc() {
 }
 
 function verify_validator() {
-    if ! verify_container_name || ! verify_host_supra_home || ! verify_network; then
+    if ! verify_container_name || ! verify_host_supra_home; then
         validator_usage
     fi
 }
@@ -67,14 +66,28 @@ function verify_args() {
 
 #---------------------------------------------------------- RPC ----------------------------------------------------------
 
-function migrate_rpc_database() {
-    docker exec -it "$CONTAINER_NAME" /supra/rpc_node migrate-db --max-buffer-record-count 100000 ./configs/config.toml 
-}
-
 function migrate_rpc() {
+    local v8_config_toml="$HOST_SUPRA_HOME/config_v8.0.x.toml"
+    local config_toml="$HOST_SUPRA_HOME/config.toml"
+
     echo "Migrating RPC $CONTAINER_NAME at $HOST_SUPRA_HOME to v9.0.x..."
-    migrate_rpc_database
-    echo "Migration complete."
+
+    if ! [ -f "$v8_config_toml" ]; then
+        mv "$config_toml" "$v8_config_toml"
+    fi
+
+    wget -O "$config_toml" https://testnet-snapshot.supra.com/configs/config_v9.0.7.toml
+    sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" "$config_toml"
+    docker stop "$CONTAINER_NAME" || :
+    ./manage_supra_nodes.sh \
+        sync \
+        --exact-timestamps \
+        --snapshot-source testnet-archive-snapshot \
+        rpc \
+        "$HOST_SUPRA_HOME" \
+        testnet
+    echo "Migration complete. Please transfer all custom settings from $v8_config_toml to "
+    echo -n "$config_toml before starting your node."
 }
 
 #---------------------------------------------------------- Validator ----------------------------------------------------------
