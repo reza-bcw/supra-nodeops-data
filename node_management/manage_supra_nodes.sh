@@ -30,20 +30,47 @@ function parse_args() {
     NODE_TYPE="$2"
 
     case "$FUNCTION" in
-        setup | update)
-            NEW_IMAGE_VERSION="$3"
-            CONTAINER_NAME="$4"
-            HOST_SUPRA_HOME="$5"
-            NETWORK="$6"
-            ;;
-        start)
-            CONTAINER_NAME="$3"
-            HOST_SUPRA_HOME="$4"
-            ;;
-        sync)
-            HOST_SUPRA_HOME="$3"
-            NETWORK="$4"
-            ;;
+    setup | update)
+        NEW_IMAGE_VERSION="$3"
+        CONTAINER_NAME="$4"
+        HOST_SUPRA_HOME="$5"
+        NETWORK="$6"
+        ;;
+    start)
+        CONTAINER_NAME="$3"
+        HOST_SUPRA_HOME="$4"
+        ;;
+    sync)
+        # Shift out `<function>`.
+        shift
+
+        # Parse the optional args.
+        while :; do
+            case $1 in
+            -e | --exact-timestamps)
+                EXACT_TIMESTAMPS="SET"
+                ;;
+            -s | --snapshot-source)
+                # TODO: Could add verification for this parameter to ensure that operators
+                # don't accidentally sync the snapshot for the wrong environment.
+                SNAPSHOT_SOURCE="$2"
+                # Shift out the args parameter.
+                shift || break
+                ;;
+            *)
+                break
+                ;;
+            esac
+
+            # Move to the next arg.
+            shift || break
+        done
+
+        # Parse the remaining expected args.
+        NODE_TYPE="$1"
+        HOST_SUPRA_HOME="$2"
+        NETWORK="$3"
+        ;;
     esac
 
     if (is_setup || is_update) && is_rpc; then
@@ -114,6 +141,7 @@ function update_usage() {
 
 function start_usage() {
     echo "Usage: ./$SCRIPT_NAME.sh start <node_type> <container_name> <host_supra_home>" >&2
+    echo "Parameters:" >&2
     node_type_usage
     container_name_usage
     host_supra_home_usage
@@ -122,9 +150,21 @@ function start_usage() {
 
 function sync_usage() {
     echo "Usage: ./$SCRIPT_NAME.sh sync <node_type> <host_supra_home> <network>" >&2
+    echo "Parameters:" >&2
     node_type_usage
     host_supra_home_usage
     network_usage
+    echo "Optional Parameters:" >&2
+    echo "  -e, --exact-timestamps" >&2
+    echo "     Sync all files in the database with last-modified timestamps that differ from the" >&2
+    echo "     timestamp of the corresponding file in the remote snapshot. Set this parameter if" >&2
+    echo "     you receive an error that indicates that your node's database might be corrupted." >&2
+    echo "     This will be more efficient than removing and re-syncing the full snapshot. Afterwards," >&2
+    echo "     run the command again without this parameter to confirm that all data has been" >&2
+    echo "     downloaded. Note that the script will re-download the same files if you repeat the" >&2
+    echo "     command with this parameter set, so do not do this." >&2
+    echo " -s, --snapshot-source <snapshot_source_name>" >&2
+    echo "     The name of the remote source to sync snapshots from."
     exit 1
 }
 
@@ -216,7 +256,7 @@ function start_rpc_docker_container() {
 # Creates a timestamped backup if the file exists and gets replaced.
 # Usage:
 #   backup_and_download_if_outdated <file_path> <download_url> <new_version> [<label>]
-backup_and_download_if_outdated() {
+function backup_and_download_if_outdated() {
     local file_path="$1"
     local download_url="$2"
     local new_version_full="$3"
@@ -512,6 +552,43 @@ function start() {
 
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
+function sync_once() {
+    local endpoint_url="$1"
+    local remote_root="$2"
+
+    local sync_options="--endpoint-url $endpoint_url --delete"
+
+    if [ -n "$EXACT_TIMESTAMPS" ]; then
+        sync_options+=" --exact-timestamps"
+    fi
+
+    if is_validator; then
+        # Create the local directory if it doesn't exist
+        mkdir -p "$HOST_SUPRA_HOME/smr_storage"
+
+        # Remove the CURRENT index file. `aws sync` sometimes fails to update this properly.
+        # This ensures that the correct version of the file will be downloaded from the snapshot.
+        rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
+
+        # Download store snapshots concurrently
+        aws s3 sync "$remote_root/store/" "$HOST_SUPRA_HOME/smr_storage/" $sync_options
+    elif is_rpc; then
+        # Create the local directories if they don't exist
+        mkdir -p "$HOST_SUPRA_HOME/rpc_store"
+        mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
+
+        # Remove the CURRENT index files. `aws sync` sometimes fails to update this properly.
+        # This ensures that the correct version of the file will be downloaded from the snapshot.
+        rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
+        rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
+
+        # Run the two download commands concurrently in the background
+        aws s3 sync "$remote_root/store/" "$HOST_SUPRA_HOME/rpc_store/" $sync_options &
+        aws s3 sync "$remote_root/archive/" "$HOST_SUPRA_HOME/rpc_archive/" $sync_options &
+        wait
+    fi
+}
+
 function sync() {
     # Install AWS CLI if not installed
     install_aws_cli
@@ -530,46 +607,58 @@ s3 =
 EOF
     fi
 
+    local bucket_name="mainnet"
+    # Define the custom endpoint for Cloudflare R2
+    local endpoint_url="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
+
     # Set AWS CLI credentials and bucket name based on the selected network
     if [ "$NETWORK" == "mainnet" ]; then
         export AWS_ACCESS_KEY_ID="c64bed98a85ccd3197169bf7363ce94f"
         export AWS_SECRET_ACCESS_KEY="0b7f15dbeef4ebe871ee8ce483e3fc8bab97be0da6a362b2c4d80f020cae9df7"
-        BUCKET_NAME="mainnet"
     elif [ "$NETWORK" == "testnet" ]; then
         export AWS_ACCESS_KEY_ID="229502d7eedd0007640348c057869c90"
         export AWS_SECRET_ACCESS_KEY="799d15f4fd23c57cd0f182f2ab85a19d885887d745e2391975bb27853e2db949"
 
         if is_validator; then
-            BUCKET_NAME="testnet-validator-snapshot"
+            bucket_name="testnet-validator-snapshot"
         elif is_rpc; then
-            BUCKET_NAME="testnet-snapshot"
+            bucket_name="testnet-snapshot"
         fi
     fi
 
-    # Define the custom endpoint for Cloudflare R2
-    local ENDPOINT_URL="https://4ecc77f16aaa2e53317a19267e3034a4.r2.cloudflarestorage.com"
+    if [ -n "$SNAPSHOT_SOURCE" ]; then
+        # The user overrode the default snapshot source via the optional parameter.
+        bucket_name="$SNAPSHOT_SOURCE"
+    fi
 
-    if is_validator; then
-        # Create the local directory if it doesn't exist
-        mkdir -p "$HOST_SUPRA_HOME/smr_storage"
+    local remote_root="s3://${bucket_name}/snapshots"
+    # The file that will be present in the `snapshots` directory of the bucket if the
+    # snapshot uploader is currently uploading an update.
+    local lock_file="$remote_root/UPLOAD_IN_PROGRESS"
 
-        # Download store snapshots concurrently
-        aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/smr_storage/" \
-            --endpoint-url "$ENDPOINT_URL" \
-            --delete
-    elif is_rpc; then
-        # Create the local directories if they don't exist
-        mkdir -p "$HOST_SUPRA_HOME/rpc_store"
-        mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
+    # Sync the current state of the bucket.
+    sync_once "$endpoint_url" "$remote_root"
 
-        # Run the two download commands concurrently in the background
-        aws s3 sync "s3://${BUCKET_NAME}/snapshots/store/" "$HOST_SUPRA_HOME/rpc_store/" \
-            --endpoint-url "$ENDPOINT_URL" \
-            --delete &
-        aws s3 sync "s3://${BUCKET_NAME}/snapshots/archive/" "$HOST_SUPRA_HOME/rpc_archive/" \
-            --endpoint-url "$ENDPOINT_URL" \
-            --delete &
-        wait
+    # Check if an upload is in progress. If it is, then the sync that we just completed
+    # will have terminated in an inconsistent state. Wait for the upload to finish, then
+    # sync one more time.
+    if aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"; then
+        echo "A new snapshot is currently being uploaded to the bucket. "
+        echo -n "Waiting for the upload to complete. This may take 10-15 minutes..."
+
+        # Wait for the upload to complete.
+        while aws s3 ls "$lock_file" --endpoint-url "$endpoint_url"
+        do
+            sleep 10
+        fi
+
+        # Sync the updated state, this time without the `--exact-timestamps` if it was set,
+        # since we only want to sync the new diff. This might fail in certain edge cases,
+        # in which case the operator should manually run the command again with the `--exact-timestamps`
+        # flag present, but should be more efficient most of the time.
+        echo "Downloading the new diff..."
+        unset "$EXACT_TIMESTAMPS"
+        sync_once "$endpoint_url" "$remote_root"
     fi
 }
 
