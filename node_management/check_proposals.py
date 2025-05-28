@@ -30,7 +30,9 @@ python3 check_proposals.py <host_supra_home>/supra_node_logs/
 ```
 
 Example usage with decompression:
+```
 python3 check_proposals.py <host_supra_home>/supra_node_logs/ --decompress
+```
 """
 
 
