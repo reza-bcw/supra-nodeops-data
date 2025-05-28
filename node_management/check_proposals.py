@@ -1,6 +1,10 @@
 import os
 import re
 import sys
+import gzip
+import shutil
+import argparse
+
 
 """
 This script parses the given log file or directory to find the block proposals made by this validator
@@ -22,9 +26,14 @@ your SLA. If issues persist, please contact Supra support via Discord.
 
 Example usage:
 ```
-python3 check_proposals.py <host_supra_home>/smr_node_logs/
+python3 check_proposals.py <host_supra_home>/supra_node_logs/
 ```
+
+Example usage with decompression:
+python3 check_proposals.py <host_supra_home>/supra_node_logs/ --decompress
 """
+
+
 
 def extract_proposal_info(line: str):
     proposal_match = re.search(r'proposal:\s+([a-f0-9]{64})', line)
@@ -59,9 +68,34 @@ def extract_committed_block_info(line: str):
         }
     return None
 
-
-def parse_log_file(filepath, proposals, committed_blocks):
+def decompress_log(filepath):
+    """Decompress the gzipped log file and return the decompressed file path"""
+    decompressed_file = filepath[:-3]  # Remove .gz extension to get the decompressed file name
     try:
+        with gzip.open(filepath, 'rb') as f_in:
+            with open(decompressed_file, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        return decompressed_file
+    except Exception as e:
+        print(f"Error decompressing file {filepath}: {e}")
+        return None
+
+def delete_decompressed_log(filepath):
+    """Delete the decompressed log file"""
+    try:
+        os.remove(filepath)
+        print(f"Deleted decompressed log: {filepath}")
+    except Exception as e:
+        print(f"Error deleting decompressed file {filepath}: {e}")
+
+def parse_log_file(filepath, proposals, committed_blocks, decompress_logs):
+    try:
+         # Decompress the file if it's a .gz file and if the decompress option is provided
+        if decompress_logs and filepath.endswith('.gz'):  # Modified to check for the decompress flag
+            decompressed_file = decompress_log(filepath)
+            if decompressed_file:
+                filepath = decompressed_file
+
         with open(filepath, 'r') as f:
             for line in f:
                 if "Proposing" in line and "SmrBlock" in line:
@@ -72,11 +106,16 @@ def parse_log_file(filepath, proposals, committed_blocks):
                     info = extract_committed_block_info(line)
                     if info:
                         committed_blocks.add((info["hash"], info["epoch"], info["round"], info["height"]))
+
+        # If it was decompressed, delete the decompressed file after processing
+        if filepath.endswith('.gz'):
+            delete_decompressed_log(filepath)
+
     except Exception as e:
         print(f"Error reading file {filepath}: {e}")
 
 
-def main(path):
+def main(path, decompress_logs):
     proposals = {}
     committed_blocks = set()
     
@@ -90,7 +129,7 @@ def main(path):
         sys.exit(1)
 
     for filepath in filepaths:
-        parse_log_file(filepath, proposals, committed_blocks)
+        parse_log_file(filepath, proposals, committed_blocks, decompress_logs)
 
     # Sort by height
     proposals = sorted(proposals.items(), key=lambda e: e[1][3])
@@ -113,4 +152,11 @@ if __name__ == "__main__":
         print("Usage: python extract_proposals_with_commit_status.py <log_file_path>")
         sys.exit(1)
 
-    main(sys.argv[1])
+    # Added argument parsing for handling the --decompress flag
+    parser = argparse.ArgumentParser(description='Process Supra block proposal logs.')
+    parser.add_argument('path', help='Path to the log file or directory')
+    parser.add_argument('--decompress', action='store_true', help='Decompress .gz files before parsing')  # Added argument for decompress
+
+    args = parser.parse_args()
+
+    main(args.path, args.decompress)
