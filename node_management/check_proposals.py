@@ -128,6 +128,18 @@ def main(path, decompress_logs):
         print(f"Error: {path} is not a valid file or directory.")
         sys.exit(1)
 
+    # Check for .gz files if the --decompress option is provided
+    if decompress_logs:
+        gz_files = [f for f in filepaths if f.endswith('.gz')]
+        if not gz_files:
+            print("No compressed .gz files found in the specified directory.")
+            user_input = input("Do you want to continue processing uncompressed files? (y/n): ")
+            if user_input.lower() != 'y':
+                print("Exiting script.")
+                sys.exit(0)
+            else:
+                print("Continuing with uncompressed files...")
+
     for filepath in filepaths:
         parse_log_file(filepath, proposals, committed_blocks, decompress_logs)
 
