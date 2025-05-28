@@ -118,10 +118,19 @@ def parse_log_file(filepath, proposals, committed_blocks, decompress_logs):
     except Exception as e:
         print(f"Error reading file {filepath}: {e}")
 
+def write_output_to_file(output, output_file="proposals.log"):
+    """Writes output to a file"""
+    with open(output_file, 'a') as file:  # Open in append mode ('a') to not overwrite existing content
+        file.write(output + '\n')
 
 def main(path, decompress_logs):
     proposals = {}
     committed_blocks = set()
+
+    # Open file for output at the start
+    output_file = "proposals.log"
+    if os.path.exists(output_file):
+        os.remove(output_file)  # Remove the file if it exists to start fresh
     
     # If the path is a directory, get all files
     if os.path.isdir(path):
@@ -153,14 +162,15 @@ def main(path, decompress_logs):
     # Report all proposals with committed status
     for local_date_time, (block_hash, epoch, round, height) in proposals:
         is_committed = (block_hash, epoch, round, height) in committed_blocks
-        print({
+        output_data = {
             "block_timestamp_local_date_time": local_date_time,
             "block_hash": block_hash,
             "epoch": epoch,
             "round": round,
             "height": height,
             "committed": is_committed
-        })
+        }
+        write_output_to_file(str(output_data), output_file)
 
 
 if __name__ == "__main__":
