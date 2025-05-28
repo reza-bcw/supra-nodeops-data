@@ -89,6 +89,7 @@ def delete_decompressed_log(filepath):
         print(f"Error deleting decompressed file {filepath}: {e}")
 
 def parse_log_file(filepath, proposals, committed_blocks, decompress_logs):
+    decompressed_file = None
     try:
          # Decompress the file if it's a .gz file and if the decompress option is provided
         if decompress_logs and filepath.endswith('.gz'):  # Modified to check for the decompress flag
@@ -108,8 +109,9 @@ def parse_log_file(filepath, proposals, committed_blocks, decompress_logs):
                         committed_blocks.add((info["hash"], info["epoch"], info["round"], info["height"]))
 
         # If it was decompressed, delete the decompressed file after processing
-        if filepath.endswith('.gz'):
-            delete_decompressed_log(filepath)
+        if decompressed_file:
+            delete_decompressed_log(decompressed_file)
+
 
     except Exception as e:
         print(f"Error reading file {filepath}: {e}")
