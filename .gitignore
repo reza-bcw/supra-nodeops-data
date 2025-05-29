@@ -16,4 +16,4 @@ Cargo.lock
 # IDE files
 .idea
 node_management/.supra
-tracking_data.txt
+stake_snapshot_taker.log
