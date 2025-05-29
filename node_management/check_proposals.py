@@ -72,6 +72,9 @@ def extract_committed_block_info(line: str):
 
 def decompress_log(filepath):
     """Decompress the gzipped log file and return the decompressed file path"""
+    if not filepath.endswith('.gz'):
+        return None  # Return None if the file is not a .gz file
+
     decompressed_file = filepath[:-3]  # Remove .gz extension to get the decompressed file name
     try:
         with gzip.open(filepath, 'rb') as f_in:
@@ -93,8 +96,8 @@ def delete_decompressed_log(filepath):
 def parse_log_file(filepath, proposals, committed_blocks, decompress_logs):
     decompressed_file = None
     try:
-         # Decompress the file if it's a .gz file and if the decompress option is provided
-        if decompress_logs and filepath.endswith('.gz'):  # Modified to check for the decompress flag
+        # Call decompress_log, which handles the .gz file check internally
+        if decompress_log:
             decompressed_file = decompress_log(filepath)
             if decompressed_file:
                 filepath = decompressed_file
