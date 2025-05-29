@@ -127,8 +127,11 @@ def write_output_to_file(output, output_file="proposals.log"):
         file.write(output + '\n')
 
 def main(path, decompress_logs):
+
     proposals = {}
     committed_blocks = set()
+
+    print("Starting to process log files...")
 
     # Open file for output at the start
     output_file = "proposals.log"
@@ -174,6 +177,9 @@ def main(path, decompress_logs):
             "committed": is_committed
         }
         write_output_to_file(str(output_data), output_file)
+
+    print(f"Processing complete! Output has been saved to {output_file}.")
+    print("Script execution finished.")
 
 
 if __name__ == "__main__":
