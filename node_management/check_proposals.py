@@ -175,13 +175,29 @@ def main(path, decompress_logs):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python extract_proposals_with_commit_status.py <log_file_path>")
+        print("""
+usage: python check_proposals.py path [--decompress]
+
+Process Supra block proposal logs.
+
+positional arguments:
+    path          Path to the log file or directory
+
+Options:
+    -h, --help    show this help message and exit
+    --decompress    Decompress .gz files before parsing
+        """)
         sys.exit(1)
 
-    # Added argument parsing for handling the --decompress flag
-    parser = argparse.ArgumentParser(description='Process Supra block proposal logs.')
+    # Argument parsing for handling the --decompress flag
+    parser = argparse.ArgumentParser(
+        description='Process Supra block proposal logs.',
+        usage="python check_proposals.py path [--decompress]"  # Custom usage format
+    )
+
     parser.add_argument('path', help='Path to the log file or directory')
-    parser.add_argument('--decompress', action='store_true', help='Decompress .gz files before parsing')  # Added argument for decompress
+    parser.add_argument('--decompress', action='store_true', help='Decompress .gz files before parsing')
+
 
     args = parser.parse_args()
 
