@@ -1,9 +1,10 @@
+import argparse
+import gzip
+import json
 import os
 import re
-import sys
-import gzip
 import shutil
-import argparse
+import sys
 
 
 """
@@ -36,6 +37,8 @@ python3 check_proposals.py <host_supra_home>/supra_node_logs/ --decompress
 """
 
 
+JSON_INDENT = 4
+
 
 def extract_proposal_info(line: str):
     proposal_match = re.search(r'proposal:\s+([a-f0-9]{64})', line)
@@ -52,7 +55,6 @@ def extract_proposal_info(line: str):
             "height": int(height_match.group(1)),
             "local_date_time": local_dt_match.group(1)
         }
-    return None
 
 
 def extract_committed_block_info(line: str):
@@ -68,39 +70,40 @@ def extract_committed_block_info(line: str):
             "round": int(round_match.group(1)),
             "height": int(height_match.group(1))
         }
-    return None
 
-def decompress_log(filepath):
-    """Decompress the gzipped log file and return the decompressed file path"""
+
+def maybe_decompress_log(filepath):
     if not filepath.endswith('.gz'):
-        return None  # Return None if the file is not a .gz file
-
-    decompressed_file = filepath[:-3]  # Remove .gz extension to get the decompressed file name
-    try:
-        with gzip.open(filepath, 'rb') as f_in:
-            with open(decompressed_file, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        return decompressed_file
-    except Exception as e:
-        print(f"Error decompressing file {filepath}: {e}")
         return None
 
+    try:
+        with gzip.open(filepath, 'rb') as f_in:
+            decompressed_path = filepath[:-3]
+
+            with open(decompressed_path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+        return decompressed_path
+    except Exception as e:
+        print(f"Error decompressing file {filepath}: {e}")
+
+
 def delete_decompressed_log(filepath):
-    """Delete the decompressed log file"""
     try:
         os.remove(filepath)
-        print(f"Deleted decompressed log: {filepath}")
     except Exception as e:
         print(f"Error deleting decompressed file {filepath}: {e}")
 
+
 def parse_log_file(filepath, proposals, committed_blocks, decompress_logs):
-    decompressed_file = None
+    decompressed_filepath = None
+
     try:
-        # Call decompress_log, which handles the .gz file check internally
-        if decompress_log:
-            decompressed_file = decompress_log(filepath)
-            if decompressed_file:
-                filepath = decompressed_file
+        if decompress_logs:
+            decompressed_filepath = maybe_decompress_log(filepath)
+
+            if decompressed_filepath:
+                filepath = decompressed_filepath
 
         with open(filepath, 'r') as f:
             for line in f:
@@ -114,29 +117,16 @@ def parse_log_file(filepath, proposals, committed_blocks, decompress_logs):
                         committed_blocks.add((info["hash"], info["epoch"], info["round"], info["height"]))
 
         # If it was decompressed, delete the decompressed file after processing
-        if decompressed_file:
-            delete_decompressed_log(decompressed_file)
-
+        if decompressed_filepath:
+            delete_decompressed_log(decompressed_filepath)
 
     except Exception as e:
         print(f"Error reading file {filepath}: {e}")
 
-def write_output_to_file(output, output_file="proposals.log"):
-    """Writes output to a file"""
-    with open(output_file, 'a') as file:  # Open in append mode ('a') to not overwrite existing content
-        file.write(output + '\n')
 
-def main(path, decompress_logs):
-
+def main(path, decompress_logs, output_file_path):
     proposals = {}
     committed_blocks = set()
-
-    print("Starting to process log files...")
-
-    # Open file for output at the start
-    output_file = "proposals.log"
-    if os.path.exists(output_file):
-        os.remove(output_file)  # Remove the file if it exists to start fresh
     
     # If the path is a directory, get all files
     if os.path.isdir(path):
@@ -147,28 +137,17 @@ def main(path, decompress_logs):
         print(f"Error: {path} is not a valid file or directory.")
         sys.exit(1)
 
-    # Check for .gz files if the --decompress option is provided
-    if decompress_logs:
-        gz_files = [f for f in filepaths if f.endswith('.gz')]
-        if not gz_files:
-            print("No compressed .gz files found in the specified directory.")
-            user_input = input("Do you want to continue processing uncompressed files? (y/n): ")
-            if user_input.lower() != 'y':
-                print("Exiting script.")
-                sys.exit(0)
-            else:
-                print("Continuing with uncompressed files...")
-
     for filepath in filepaths:
         parse_log_file(filepath, proposals, committed_blocks, decompress_logs)
 
     # Sort by height
     proposals = sorted(proposals.items(), key=lambda e: e[1][3])
+    records = []
 
     # Report all proposals with committed status
     for local_date_time, (block_hash, epoch, round, height) in proposals:
         is_committed = (block_hash, epoch, round, height) in committed_blocks
-        output_data = {
+        record = {
             "block_timestamp_local_date_time": local_date_time,
             "block_hash": block_hash,
             "epoch": epoch,
@@ -176,38 +155,21 @@ def main(path, decompress_logs):
             "height": height,
             "committed": is_committed
         }
-        write_output_to_file(str(output_data), output_file)
+        records.append(record)
 
-    print(f"Processing complete! Output has been saved to {output_file}.")
-    print("Script execution finished.")
+    if output_file_path:
+        with open(output_file_path, 'a') as f:
+            json.dump(records, f, indent=JSON_INDENT)
+    else:
+        print(json.dumps(records, indent=JSON_INDENT))
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("""
-usage: python check_proposals.py path [--decompress]
-
-Process Supra block proposal logs.
-
-positional arguments:
-    path          Path to the log file or directory
-
-Options:
-    -h, --help    show this help message and exit
-    --decompress    Decompress .gz files before parsing
-        """)
-        sys.exit(1)
-
-    # Argument parsing for handling the --decompress flag
     parser = argparse.ArgumentParser(
-        description='Process Supra block proposal logs.',
-        usage="python check_proposals.py path [--decompress]"  # Custom usage format
+        description='Process Supra block proposal logs.'
     )
-
     parser.add_argument('path', help='Path to the log file or directory')
     parser.add_argument('--decompress', action='store_true', help='Decompress .gz files before parsing')
-
-
+    parser.add_argument('--output-file', help='Path of the file in which to write the output')
     args = parser.parse_args()
-
-    main(args.path, args.decompress)
+    main(args.path, args.decompress, args.output_file)
