@@ -507,7 +507,9 @@ function maybe_update_container() {
 function update() {
     ensure_supra_home_is_absolute_path
     maybe_update_container
-    update_validator_in_config_toml
+    if is_rpc; then
+        update_validator_in_config_toml
+    fi
 }
 
 #---------------------------------------------------------- Start ----------------------------------------------------------
