@@ -426,6 +426,43 @@ function setup() {
 
     echo "$NODE_TYPE node setup completed."
 }
+#---------------------------------------------------------- Setup Rclone Config ----------------------------------------------------------
+function setup_rclone_config_if_missing() {
+    local config_path="$HOME/.config/rclone/rclone.conf"
+    mkdir -p "$(dirname "$config_path")"
+
+    if [[ "$NETWORK" == "mainnet" ]]; then
+        export RCLONE_REMOTE_NAME="cloudflare-r2-mainnet"
+        export RCLONE_ACCESS_KEY_ID="ba3e917e8f1eb35772059f8eb3736cac"
+        export RCLONE_SECRET_ACCESS_KEY="432bbb569498de327299a40b6b2357dc282ff4158e939efbe6c75807c4885e3b"
+        export RCLONE_ACCOUNT_ID="4ecc77f16aaa2e53317a19267e3034a4"
+    elif [[ "$NETWORK" == "testnet" ]]; then
+        export RCLONE_REMOTE_NAME="cloudflare-r2-testnet"
+        export RCLONE_ACCESS_KEY_ID="20f826bb30ea7205116e2adc7f19e34d"
+        export RCLONE_SECRET_ACCESS_KEY="1ad51161a013f1115381197929524cc1ff91fbccf016717652af8adf8fa2ed98"
+        export RCLONE_ACCOUNT_ID="4ecc77f16aaa2e53317a19267e3034a4"
+    else
+        echo "❌ Unsupported network: $NETWORK"
+        exit 1
+    fi
+
+    if ! grep -q "^\[$RCLONE_REMOTE_NAME\]" "$config_path" 2>/dev/null; then
+        echo "Configuring rclone remote: $RCLONE_REMOTE_NAME"
+        cat <<EOF >> "$config_path"
+[$RCLONE_REMOTE_NAME]
+type = s3
+provider = Cloudflare
+access_key_id = ${RCLONE_ACCESS_KEY_ID}
+secret_access_key = ${RCLONE_SECRET_ACCESS_KEY}
+endpoint = https://${RCLONE_ACCOUNT_ID}.r2.cloudflarestorage.com
+region = auto
+chunk_size = 512M
+upload_cutoff = 512M
+EOF
+    else
+        echo "✅ Rclone remote $RCLONE_REMOTE_NAME already exists."
+    fi
+}
 
 #---------------------------------------------------------- Update ----------------------------------------------------------
 
@@ -558,9 +595,8 @@ function sync_once() {
     if is_validator; then
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
         rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
-        rclone copy cloudflare-r2:$bucket_name/snapshots/store "$HOST_SUPRA_HOME/smr_storage" \
-          --s3-chunk-size 512M \
-          --s3-upload-cutoff 512M \
+        setup_rclone_config_if_missing
+        rclone copy ${RCLONE_REMOTE_NAME}:$bucket_name/snapshots/store "$HOST_SUPRA_HOME/smr_storage" \
           --multi-thread-streams 16 \
           --transfers 32 \
           --checkers 128 \
@@ -575,12 +611,8 @@ function sync_once() {
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
         rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
         rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
-        echo "Bucket_name: $bucket_name"
-        echo "Host Supra Home: $HOST_SUPRA_HOME"
-        echo "Network: $NETWORK"
-        rclone copy cloudflare-r2:$bucket_name/snapshots/store "$HOST_SUPRA_HOME/rpc_store" \
-          --s3-chunk-size 512M \
-          --s3-upload-cutoff 512M \
+        setup_rclone_config_if_missing
+        rclone copy ${RCLONE_REMOTE_NAME}:$bucket_name/snapshots/store "$HOST_SUPRA_HOME/rpc_store" \
           --multi-thread-streams 16 \
           --transfers 32 \
           --checkers 128 \
@@ -590,9 +622,7 @@ function sync_once() {
           --progress \
           --log-level INFO \
           --log-file ./rclone-r2-optimized.log &
-        rclone copy cloudflare-r2:$bucket_name/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive" \
-          --s3-chunk-size 512M \
-          --s3-upload-cutoff 512M \
+        rclone copy ${RCLONE_REMOTE_NAME}:$bucket_name/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive" \
           --multi-thread-streams 16 \
           --transfers 32 \
           --checkers 128 \
@@ -619,7 +649,9 @@ function sync() {
         bucket_name="$SNAPSHOT_SOURCE"
     elif [ "$NETWORK" == "mainnet" ]; then
         bucket_name="mainnet"
+        # Set RCLONE environment values — ideally from env vars or secrets
     elif [ "$NETWORK" == "testnet" ]; then
+        # Set RCLONE environment values — ideally from env vars or secrets
         if is_validator; then
             bucket_name="testnet-validator-snapshot"
         elif is_rpc; then
