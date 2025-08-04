@@ -462,8 +462,9 @@ function install_rclone_if_missing() {
 }
 #---------------------------------------------------------- Setup Rclone Config ----------------------------------------------------------
 function setup_rclone_config_if_missing() {
-    local config_path="$HOME/.config/rclone/rclone.conf"
-    install_rclone_if_missing
+    local config_path="$HOME/.config/rclone"
+    local config_file="rclone.conf"
+    
     mkdir -p "$(dirname "$config_path")"
 
     if [[ "$NETWORK" == "mainnet" ]]; then
@@ -481,9 +482,9 @@ function setup_rclone_config_if_missing() {
         exit 1
     fi
 
-    if ! grep -q "^\[$RCLONE_REMOTE_NAME\]" "$config_path" 2>/dev/null; then
+    if ! grep -q "^\[$RCLONE_REMOTE_NAME\]" "$config_path/$config_file" 2>/dev/null; then
         echo "Configuring rclone remote: $RCLONE_REMOTE_NAME"
-        cat <<EOF >> "$config_path"
+        cat <<EOF >> "$config_path/$config_file"
 [$RCLONE_REMOTE_NAME]
 type = s3
 provider = Cloudflare
@@ -500,14 +501,36 @@ EOF
 }
 #---------------------------------------------------------- Sync Snapshot Directory ----------------------------------------------------------
 function sync_snapshot_dir() {
-    local remote_subpath="$1"    # e.g. "snapshots/store"
+    local remote_subpath="$1"    # e.g. "cloudflare-r2-testnet:testnet-snapshot/snapshots/store"
     local destination_path="$2"  # e.g. "$HOST_SUPRA_HOME/rpc_store"
     local log_suffix="$3"        # e.g. "store", "archive", "smr"
-    local sync_options="--multi-thread-streams 16 --transfers 32 --checkers 128 --fast-list --low-level-retries 20 --retries 10 --progress --log-level INFO --log-file ./rclone-sync-${log_suffix}.log"
+
+    # Sync options
+    local sync_options=(
+        --multi-thread-streams 16
+        --transfers 32
+        --checkers 128
+        --fast-list
+        --low-level-retries 20
+        --retries 10
+        --progress
+        --log-level INFO
+        --log-file "./rclone-sync-${log_suffix}.log"
+    )
+
     mkdir -p "$destination_path"
     rm -f "$destination_path/CURRENT"
-    rclone sync "${RCLONE_REMOTE_NAME}":"${bucket_name}"/"${remote_subpath}" "$destination_path" "$DRY_RUN" "$sync_options"
+
+    echo "⬇️  Downloading snapshot from $remote_subpath to $destination_path ..."
+    
+    # Conditionally add --dry-run if set
+    if [[ -n "$DRY_RUN" ]]; then
+        rclone sync "$remote_subpath" "$destination_path" --dry-run "${sync_options[@]}"
+    else
+        rclone sync "$remote_subpath" "$destination_path" "${sync_options[@]}"
+    fi
 }
+
 #---------------------------------------------------------- Update ----------------------------------------------------------
 function remove_old_docker_container() {
     docker stop "$CONTAINER_NAME"
@@ -635,23 +658,27 @@ function start() {
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
 function sync_once() {
-    setup_rclone_config_if_missing
+    local remote_root="$1"
     if is_validator; then
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
         rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
-        sync_snapshot_dir "snapshots/store" "$HOST_SUPRA_HOME/smr_storage" "smr"
+        sync_snapshot_dir "$remote_root/store" "$HOST_SUPRA_HOME/smr_storage" "smr"
     elif is_rpc; then
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
         rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
         rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
-        sync_snapshot_dir "snapshots/store" "$HOST_SUPRA_HOME/rpc_store" "store" &
-        sync_snapshot_dir "snapshots/archive" "$HOST_SUPRA_HOME/rpc_archive" "archive" &
+        echo "here-------------------"
+        sync_snapshot_dir "$remote_root/store" "$HOST_SUPRA_HOME/rpc_store" "store" &
+        sync_snapshot_dir "$remote_root/archive" "$HOST_SUPRA_HOME/rpc_archive" "archive" &
         wait
     fi
 }
 
 function sync() {
+    install_rclone_if_missing
+    setup_rclone_config_if_missing
+
     if [[ "$1" == "--dry-run" ]]; then
         echo "Running in dry-run mode..."
         DRY_RUN="--dry-run"
@@ -659,47 +686,44 @@ function sync() {
         DRY_RUN=""
     fi
 
-    # Validate required inputs
+    # Determine bucket name
     if [ -n "$SNAPSHOT_SOURCE" ]; then
         bucket_name="$SNAPSHOT_SOURCE"
     elif [ "$NETWORK" == "mainnet" ]; then
-        # Set RCLONE environment values — ideally from env vars or secrets
-        if is_validator; then
-            bucket_name="mainnet-validator-snapshot"
-        elif is_rpc; then
-            bucket_name="mainnet"
-        fi
+        bucket_name=$(is_validator && echo "mainnet-validator-snapshot" || echo "mainnet")
     elif [ "$NETWORK" == "testnet" ]; then
-        # Set RCLONE environment values — ideally from env vars or secrets
-        if is_validator; then
-            bucket_name="testnet-validator-snapshot"
-        elif is_rpc; then
-            bucket_name="testnet-snapshot"
-        fi
+        bucket_name=$(is_validator && echo "testnet-validator-snapshot" || echo "testnet-snapshot")
     fi
 
-    sync_once
-    # Check if snapshot upload lock file exists
-    if rclone lsf "${RCLONE_REMOTE_NAME}:${bucket_name}/${lock_file}" &> /dev/null; then
+    local remote_root="${RCLONE_REMOTE_NAME}:${bucket_name}/snapshots"
+    lock_dir="${remote_root}/"
+    lock_filename="UPLOAD_IN_PROGRESS"
+    sync_once "$remote_root"
+    echo "🔍 Checking for lock file: ${lock_dir}${lock_filename}"
+    if rclone lsf "$lock_dir" | grep -q "^${lock_filename}$"; then
         echo "🚧 A new snapshot is currently being uploaded to the bucket."
         echo -n "⏳ Waiting for the upload to complete. This may take 10–15 minutes..."
 
-        # Wait until the lock file disappears
-        while rclone lsf "${RCLONE_REMOTE_NAME}:${bucket_name}/${lock_file}" &> /dev/null; do
+        local retries=60
+        local count=0
+        while rclone lsf "$lock_dir" | grep -q "^${lock_filename}$"; do
             echo -n "."
             sleep 10
+            ((count++))
+            if [[ $count -ge $retries ]]; then
+                echo ""
+                echo "❌ Timeout: Upload lock file still exists after 10 minutes."
+                exit 1
+            fi
         done
 
         echo ""
         echo "✅ Upload completed. Proceeding to sync..."
-        
-        # Optional: if EXACT_TIMESTAMPS was used earlier
-        unset EXACT_TIMESTAMPS
-
-        # Sync the new diff
-        sync_once
+        echo "📥 Downloading snapshot from $remote_root ..."
+        sync_once "$remote_root"
     fi
 }
+
 
 #---------------------------------------------------------- Main ----------------------------------------------------------
 
