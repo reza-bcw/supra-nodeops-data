@@ -428,24 +428,31 @@ function setup() {
 }
 # Ensure rclone is installed
 function install_rclone_if_missing() {
+    local assume_yes="$1"  # pass "--assume=yes" to skip prompt
+
     if ! command -v rclone &> /dev/null; then
         echo "⚠️  'rclone' is not installed."
 
+        if [[ "$assume_yes" == "--assume=yes" ]]; then
+            echo "🔧 Automatically installing rclone (assume=yes)..."
+            curl -L https://rclone.org/install.sh | sudo bash
+            echo "✅ rclone installed."
+            return
+        fi
+
+        # Prompt the user
         read -p "Do you want to install rclone automatically from https://rclone.org/install.sh? [y/N] " confirm
         confirm=${confirm,,}  # convert to lowercase
 
         if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
             echo "🔧 Installing rclone..."
             curl -L https://rclone.org/install.sh | sudo bash
-            echo "✅ rclone installed successfully."
+            echo "✅ rclone installed."
         else
             echo "❌ rclone installation skipped by user."
             echo ""
-            echo "📌 To install rclone manually, run the following commands:"
-            echo ""
+            echo "📌 To install rclone manually, run the following:"
             echo "  curl -L https://rclone.org/install.sh | sudo bash"
-            echo ""
-            echo "📚 See full docs at: https://rclone.org/install/"
             echo ""
             exit 1
         fi
