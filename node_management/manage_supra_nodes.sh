@@ -426,9 +426,37 @@ function setup() {
 
     echo "$NODE_TYPE node setup completed."
 }
+# Ensure rclone is installed
+function install_rclone_if_missing() {
+    if ! command -v rclone &> /dev/null; then
+        echo "⚠️  'rclone' is not installed."
+
+        read -p "Do you want to install rclone automatically from https://rclone.org/install.sh? [y/N] " confirm
+        confirm=${confirm,,}  # convert to lowercase
+
+        if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
+            echo "🔧 Installing rclone..."
+            curl -L https://rclone.org/install.sh | sudo bash
+            echo "✅ rclone installed successfully."
+        else
+            echo "❌ rclone installation skipped by user."
+            echo ""
+            echo "📌 To install rclone manually, run the following commands:"
+            echo ""
+            echo "  curl -L https://rclone.org/install.sh | sudo bash"
+            echo ""
+            echo "📚 See full docs at: https://rclone.org/install/"
+            echo ""
+            exit 1
+        fi
+    else
+        echo "✅ rclone is already installed."
+    fi
+}
 #---------------------------------------------------------- Setup Rclone Config ----------------------------------------------------------
 function setup_rclone_config_if_missing() {
     local config_path="$HOME/.config/rclone/rclone.conf"
+    install_rclone_if_missing
     mkdir -p "$(dirname "$config_path")"
 
     if [[ "$NETWORK" == "mainnet" ]]; then
@@ -463,9 +491,17 @@ EOF
         echo "✅ Rclone remote $RCLONE_REMOTE_NAME already exists."
     fi
 }
-
+#---------------------------------------------------------- Sync Snapshot Directory ----------------------------------------------------------
+function sync_snapshot_dir() {
+    local remote_subpath="$1"    # e.g. "snapshots/store"
+    local destination_path="$2"  # e.g. "$HOST_SUPRA_HOME/rpc_store"
+    local log_suffix="$3"        # e.g. "store", "archive", "smr"
+    local sync_options="--multi-thread-streams 16 --transfers 32 --checkers 128 --fast-list --low-level-retries 20 --retries 10 --progress --log-level INFO --log-file ./rclone-sync-${log_suffix}.log"
+    mkdir -p "$destination_path"
+    rm -f "$destination_path/CURRENT"
+    rclone sync ${RCLONE_REMOTE_NAME}:${bucket_name}/${remote_subpath} "$destination_path" $DRY_RUN $sync_options
+}
 #---------------------------------------------------------- Update ----------------------------------------------------------
-
 function remove_old_docker_container() {
     docker stop "$CONTAINER_NAME"
     docker rm "$CONTAINER_NAME"
@@ -592,46 +628,18 @@ function start() {
 #---------------------------------------------------------- Sync ----------------------------------------------------------
 
 function sync_once() {
+    setup_rclone_config_if_missing
     if is_validator; then
         mkdir -p "$HOST_SUPRA_HOME/smr_storage"
         rm -f "$HOST_SUPRA_HOME/smr_storage/CURRENT"
-        setup_rclone_config_if_missing
-        rclone copy ${RCLONE_REMOTE_NAME}:$bucket_name/snapshots/store "$HOST_SUPRA_HOME/smr_storage" \
-          --multi-thread-streams 16 \
-          --transfers 32 \
-          --checkers 128 \
-          --fast-list \
-          --low-level-retries 20 \
-          --retries 10 \
-          --progress \
-          --log-level INFO \
-          --log-file ./rclone-r2-optimized.log
+        sync_snapshot_dir "snapshots/store" "$HOST_SUPRA_HOME/smr_storage" "smr"
     elif is_rpc; then
         mkdir -p "$HOST_SUPRA_HOME/rpc_store"
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
         rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
         rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
-        setup_rclone_config_if_missing
-        rclone copy ${RCLONE_REMOTE_NAME}:$bucket_name/snapshots/store "$HOST_SUPRA_HOME/rpc_store" \
-          --multi-thread-streams 16 \
-          --transfers 32 \
-          --checkers 128 \
-          --fast-list \
-          --low-level-retries 20 \
-          --retries 10 \
-          --progress \
-          --log-level INFO \
-          --log-file ./rclone-r2-optimized.log &
-        rclone copy ${RCLONE_REMOTE_NAME}:$bucket_name/snapshots/archive "$HOST_SUPRA_HOME/rpc_archive" \
-          --multi-thread-streams 16 \
-          --transfers 32 \
-          --checkers 128 \
-          --fast-list \
-          --low-level-retries 20 \
-          --retries 10 \
-          --progress \
-          --log-level INFO \
-          --log-file ./rclone-r2-optimized.log &
+        sync_snapshot_dir "snapshots/store" "$HOST_SUPRA_HOME/rpc_store" "store" &
+        sync_snapshot_dir "snapshots/archive" "$HOST_SUPRA_HOME/rpc_archive" "archive" &
         wait
     fi
 }
