@@ -506,7 +506,7 @@ function sync_snapshot_dir() {
     local sync_options="--multi-thread-streams 16 --transfers 32 --checkers 128 --fast-list --low-level-retries 20 --retries 10 --progress --log-level INFO --log-file ./rclone-sync-${log_suffix}.log"
     mkdir -p "$destination_path"
     rm -f "$destination_path/CURRENT"
-    rclone sync ${RCLONE_REMOTE_NAME}:${bucket_name}/${remote_subpath} "$destination_path" $DRY_RUN $sync_options
+    rclone sync "${RCLONE_REMOTE_NAME}":"${bucket_name}"/"${remote_subpath}" "$destination_path" "$DRY_RUN" "$sync_options"
 }
 #---------------------------------------------------------- Update ----------------------------------------------------------
 function remove_old_docker_container() {
@@ -663,8 +663,12 @@ function sync() {
     if [ -n "$SNAPSHOT_SOURCE" ]; then
         bucket_name="$SNAPSHOT_SOURCE"
     elif [ "$NETWORK" == "mainnet" ]; then
-        bucket_name="mainnet"
         # Set RCLONE environment values — ideally from env vars or secrets
+        if is_validator; then
+            bucket_name="mainnet-validator-snapshot"
+        elif is_rpc; then
+            bucket_name="mainnet"
+        fi
     elif [ "$NETWORK" == "testnet" ]; then
         # Set RCLONE environment values — ideally from env vars or secrets
         if is_validator; then
@@ -674,11 +678,27 @@ function sync() {
         fi
     fi
 
-    echo "Bucket_name: $bucket_name"
-    echo "Host Supra Home: $HOST_SUPRA_HOME"
-    echo "Network: $NETWORK"
-
     sync_once
+    # Check if snapshot upload lock file exists
+    if rclone lsf "${RCLONE_REMOTE_NAME}:${bucket_name}/${lock_file}" &> /dev/null; then
+        echo "🚧 A new snapshot is currently being uploaded to the bucket."
+        echo -n "⏳ Waiting for the upload to complete. This may take 10–15 minutes..."
+
+        # Wait until the lock file disappears
+        while rclone lsf "${RCLONE_REMOTE_NAME}:${bucket_name}/${lock_file}" &> /dev/null; do
+            echo -n "."
+            sleep 10
+        done
+
+        echo ""
+        echo "✅ Upload completed. Proceeding to sync..."
+        
+        # Optional: if EXACT_TIMESTAMPS was used earlier
+        unset EXACT_TIMESTAMPS
+
+        # Sync the new diff
+        sync_once
+    fi
 }
 
 #---------------------------------------------------------- Main ----------------------------------------------------------
