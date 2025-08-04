@@ -668,7 +668,6 @@ function sync_once() {
         mkdir -p "$HOST_SUPRA_HOME/rpc_archive"
         rm -f "$HOST_SUPRA_HOME/rpc_store/CURRENT"
         rm -f "$HOST_SUPRA_HOME/rpc_archive/CURRENT"
-        echo "here-------------------"
         sync_snapshot_dir "$remote_root/store" "$HOST_SUPRA_HOME/rpc_store" "store" &
         sync_snapshot_dir "$remote_root/archive" "$HOST_SUPRA_HOME/rpc_archive" "archive" &
         wait
