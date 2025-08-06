@@ -467,6 +467,7 @@ function install_rclone_if_missing() {
 function setup_rclone_config_if_missing() {
     local config_path="$HOME/.config/rclone"
     local config_file="rclone.conf"
+    local full_config_path="$config_path/$config_file"
     
     mkdir -p "$(dirname "$config_path")"
 
