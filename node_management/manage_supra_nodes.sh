@@ -405,8 +405,11 @@ function download_validator_static_configuration_files() {
 function update_validator_in_config_toml() {
     local config_toml="$HOST_SUPRA_HOME/config.toml"
 
-    if ! [ -f "$config_toml" ]; then
+    if [ -f "$config_toml" ]; then
         sed -i'.bak' "s/<VALIDATOR_IP>/$VALIDATOR_IP/g" "$config_toml"
+        echo "✅ Updated validator IP to $VALIDATOR_IP in config.toml"
+    else
+        echo "⚠️ config.toml not found at $config_toml, cannot update VALIDATOR_IP"
     fi
 }
 
