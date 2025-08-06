@@ -469,7 +469,7 @@ function setup_rclone_config_if_missing() {
     local config_file="rclone.conf"
     local full_config_path="$config_path/$config_file"
     
-    mkdir -p "$(dirname "$config_path")"
+    mkdir -p "$config_path"
 
     # Ensure the file exists before appending
     touch "$full_config_path"
