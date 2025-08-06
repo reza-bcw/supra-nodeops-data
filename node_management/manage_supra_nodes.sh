@@ -470,6 +470,9 @@ function setup_rclone_config_if_missing() {
     
     mkdir -p "$(dirname "$config_path")"
 
+    # Ensure the file exists before appending
+    touch "$full_config_path"
+
     if [[ "$NETWORK" == "mainnet" ]]; then
         export RCLONE_REMOTE_NAME="cloudflare-r2-mainnet"
         export RCLONE_ACCESS_KEY_ID="ba3e917e8f1eb35772059f8eb3736cac"
