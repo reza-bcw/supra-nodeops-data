@@ -50,12 +50,18 @@ function parse_args() {
             -e | --exact-timestamps)
                 EXACT_TIMESTAMPS="SET"
                 ;;
+            -v | --verbose)
+                VERBOSE="SET"
+                ;;
             -s | --snapshot-source)
                 # TODO: Could add verification for this parameter to ensure that operators
                 # don't accidentally sync the snapshot for the wrong environment.
                 SNAPSHOT_SOURCE="$2"
-                # Shift out the args parameter.
+                # Shift out the arg's parameter.
                 shift || break
+                ;;
+            --assume-yes)
+                ASSUME_YES="SET"
                 ;;
             *)
                 break
@@ -164,7 +170,10 @@ function sync_usage() {
     echo "     downloaded. Note that the script will re-download the same files if you repeat the" >&2
     echo "     command with this parameter set, so do not do this." >&2
     echo " -s, --snapshot-source <snapshot_source_name>" >&2
-    echo "     The name of the remote source to sync snapshots from."
+    echo "     The name of the remote source to sync snapshots from." >&2
+    echo " --assume-yes" >&2
+    echo "     Automatically answer 'yes' to all prompts during rclone installation when running the" >&2
+    echo "     sync command. Useful for non-interactive or automated setups."
     exit 1
 }
 
@@ -710,7 +719,7 @@ function sync() {
         echo "🚧 A new snapshot is currently being uploaded to the bucket."
         echo -n "⏳ Waiting for the upload to complete. This may take 10–15 minutes..."
 
-        local retries=60
+        local retries=120
         local count=0
         while rclone lsf "$lock_dir" | grep -q "^${lock_filename}$"; do
             echo -n "."
