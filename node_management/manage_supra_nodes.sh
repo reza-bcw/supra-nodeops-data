@@ -495,7 +495,7 @@ function maybe_update_container() {
 
     if is_validator; then
         start_validator_docker_container
-        update_smr_settings_toml
+        # update_smr_settings_toml
     else
         start_rpc_docker_container
         update_config_toml
