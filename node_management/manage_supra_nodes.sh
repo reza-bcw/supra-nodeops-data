@@ -453,7 +453,7 @@ function install_rclone_if_missing() {
         fi
 
         # Prompt the user
-        read -p "Do you want to install rclone automatically from https://rclone.org/install.sh? [y/N] " confirm
+        read -p "This script requires rclone to proceed. Install it now? [y/N] " confirm
         confirm=${confirm,,}  # convert to lowercase
 
         if [[ "$confirm" == "y" || "$confirm" == "yes" ]]; then
