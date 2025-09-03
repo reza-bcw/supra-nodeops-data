@@ -468,8 +468,6 @@ function install_rclone_if_missing() {
             echo ""
             exit 1
         fi
-    else
-        echo "✅ rclone is already installed."
     fi
 }
 #---------------------------------------------------------- Setup Rclone Config ----------------------------------------------------------
@@ -511,8 +509,6 @@ region = auto
 chunk_size = 512M
 upload_cutoff = 512M
 EOF
-    else
-        echo "✅ Rclone remote $RCLONE_REMOTE_NAME already exists."
     fi
 }
 #---------------------------------------------------------- Sync Snapshot Directory ----------------------------------------------------------
@@ -734,7 +730,6 @@ function sync() {
 
         echo ""
         echo "✅ Upload completed. Proceeding to sync..."
-        echo "📥 Downloading snapshot from $remote_root ..."
         sync_once "$remote_root"
     fi
 }
