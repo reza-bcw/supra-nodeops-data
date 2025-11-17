@@ -22,6 +22,10 @@ function network_usage() {
     echo "  - network: The network to sync with. Either 'testnet' or 'mainnet'." >&2
 }
 
+function validator_ip_usage() {
+    echo "  - validator_ip: The IP address of the validator to sync consensus data from. Must be a valid IPv4 address: i.e. '[0-9]+.[0-9]+.[0-9]+.[0-9]+'" >&2
+}
+
 function is_ipv4_address() {
     local ip="$1"
     [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
@@ -81,7 +85,6 @@ function prompt_for_cli_password() {
 
 # Helper function to install AWS CLI v2 if not already installed
 function install_aws_cli() {
-    
     export AWS_MAX_CONCURRENT_REQUESTS=350  # Adjust based on system resources
     export AWS_MAX_QUEUE_SIZE=10000  # Increase queue size for large downloads
 
@@ -92,7 +95,7 @@ function install_aws_cli() {
             sudo apt-get update && sudo apt-get install -y unzip
         fi
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
+        unzip awscliv2.zip >/dev/null
         sudo ./aws/install
         rm -rf aws awscliv2.zip
     fi
